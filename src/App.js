@@ -5,9 +5,10 @@ import "leaflet/dist/leaflet.css";
 import { MapContainer, TileLayer } from "react-leaflet"
 import L from "leaflet";
 import { urbitVisor } from "@dcspark/uv-core";
-import Amplify, { API } from "aws-amplify";
+import Amplify, { API, graphqlOperation } from "aws-amplify";
 import awsconfig from "./aws-exports";
 import { listShips } from "./graphql/queries";
+import { onUpdateShip, onCreateShip, onDeleteShip } from "./graphql/subscriptions";
 import { createShip as createShipMutation, updateShip as updateShipMutation, deleteShip as deleteShipMutation} from "./graphql/mutations";
 import { sigil, reactRenderer, stringRenderer } from '@tlon/sigil-js'
 
@@ -21,8 +22,12 @@ function App() {
   const [ships, setShips] = useState(null);
   const [selectedShip, setSelectedShip] = useState(null);
   const [dragged, setDragged] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+  const [updatedShip, setUpdatedShip] = useState(null);
+  const [createdShip, setCreatedShip] = useState(null);
+  const [deletedShip, setDeletedShip] = useState(null);
   
-  async function fetchShips(loadedMap) {
+  async function fetchShips(pLoadedMap) {
 
     const apiData = await API.graphql({ query: listShips });
 
@@ -41,36 +46,17 @@ function App() {
            }) + '</div>'})
       });
 
-      if(ship.name === myShip){
+      marker.on('click', function (e) {
 
-        marker.on('click', function (e) {
+        setSelectedShip(ship.name);  
+        pLoadedMap.setView(new L.LatLng(ship.location.split(",")[0], ship.location.split(",")[1]), 18);
+        setDragged(false);
 
-          setSelectedShip(ship.name);  
-          loadedMap.setView(new L.LatLng(ship.location.split(",")[0], ship.location.split(",")[1]), 18);
-          setDragged(false);
+      });      
 
-        });
+      const tempShip = {...ship, marker: marker};
 
-      }
-
-      else{
-
-        marker.on('click', function (e) {
-
-          setSelectedShip(ship.name);  
-          loadedMap.setView(new L.LatLng(ship.location.split(",")[0], ship.location.split(",")[1]), 18);     
-  
-        });
-
-      }
-
-      marker.on('mouseover', function (e) {
-
-        marker.openPopup();
-
-      });
-
-      const tempShip = {...ship, location: ship.location, marker: marker};
+      pLoadedMap.addLayer(tempShip.marker);
 
       return tempShip;
 
@@ -78,25 +64,33 @@ function App() {
 
     setShips(tempShips);
 
-    loadedMap.on('movestart', function (e) {
+    pLoadedMap.on('movestart', function (e) {
 
       setDragged(true);
 
     });
 
+    pLoadedMap.setView(new L.LatLng(35, -95), 2.5); 
+
+    setMap(pLoadedMap);    
+
+    setLoaded(true);
+
   }
 
-  async function deleteShip(shipName) {
+  async function deleteShips(pShipName) {
 
     const apiData = await API.graphql({ query: listShips });
 
     apiData.data.listShips.items.map(ship => {
       
-      if(ship.name === shipName) {
+      if(ship.name === pShipName) {
+
+        // console.log('Deleting Ship: ' + pShipName + ' Id: ' + ship.id);
 
         API.graphql({ query: deleteShipMutation, variables: { input: { id: ship.id } }})
 
-        const tempShips = ships.filter(ship => ship.name !== shipName);
+        const tempShips = ships.filter(ship => ship.name !== pShipName);
 
         setShips(tempShips);
       
@@ -108,19 +102,49 @@ function App() {
   
   }
 
-  async function updateShip() {
-  
-    const shipIndex = ships.findIndex((ship => ship.name === myShip));
+  async function deleteShip(pShipName) {
+
+    const shipIndex = ships.findIndex((ship => ship.name === pShipName));
 
     if (shipIndex !== -1) {
 
-      if(location && ships[shipIndex].location !== location) {
+      // console.log('Deleting Ship: ' + pShipName);
 
-        var tempShip = {id: ships[shipIndex].id, name: ships[shipIndex].name, location: location};
+      if(pShipName === myShip) {
 
-        await API.graphql({ query: updateShipMutation, variables: { input: tempShip }}); 
+        API.graphql({ query: deleteShipMutation, variables: { input: { id: ships[shipIndex].id } }})
 
-        const splitLocation = location.split(",");
+      }
+
+      const tempShips = ships.filter(ship => ship.name !== pShipName);
+
+      map.removeLayer(ships[shipIndex].marker);
+
+      setShips(tempShips);  
+    
+    }
+
+  }
+
+  async function updateShip(pShip) {
+  
+    const shipIndex = ships.findIndex((ship => ship.name === pShip.name));
+
+    if (shipIndex !== -1) {
+
+      if(ships[shipIndex].location !== pShip.location) {
+
+        // console.log('Updating Ship: ' + pShip.name + ' Location: ' + pShip.location);
+
+        var tempShip = {id: ships[shipIndex].id, name: ships[shipIndex].name, location: pShip.location};  
+        
+        if(pShip.name === myShip) {
+        
+          await API.graphql({ query: updateShipMutation, variables: { input: tempShip }});
+
+        }
+
+        const splitLocation = pShip.location.split(",");
 
         const marker = L.marker([splitLocation[0], splitLocation[1]],         
           {title: ships[shipIndex].name, icon: new L.DivIcon({
@@ -137,19 +161,17 @@ function App() {
 
         marker.on('click', () => {
 
-            setSelectedShip(myShip);
-            map.setView(new L.LatLng(location.split(",")[0], location.split(",")[1]), 18);
-            setDragged(false);
+          setSelectedShip(pShip.name);
+          map.setView(new L.LatLng(pShip.location.split(",")[0], pShip.location.split(",")[1]), 18);
+          setDragged(false);
 
         });
-
-        marker.on('mouseover', function (e) {
-
-          marker.openPopup();
-  
-        });
-        
+      
         tempShip.marker = marker;
+
+        map.removeLayer(ships[shipIndex].marker);
+
+        map.addLayer(tempShip.marker);
 
         var tempShips = [...ships];
 
@@ -163,22 +185,30 @@ function App() {
 
   }
 
-  async function createShip() {
+  async function createShip(pShip) {
 
-    const shipIndex = ships.findIndex((ship => ship.name === myShip));
+    const shipIndex = ships.findIndex((ship => ship.name === pShip.name));
 
     if(shipIndex === -1) {
 
-      const updateResults = await API.graphql({ query: createShipMutation, variables: { input: {name: myShip, location: location} } });
+      // console.log('Creating Ship: Name: ' + pShip.name + ' Location: ' + pShip.location);
 
-      const splitLocation = location.split(",");
+      if(pShip.name === myShip) {
+
+        const createResults = await API.graphql({ query: createShipMutation, variables: { input: {name: myShip, location: location} } });
+        
+        pShip.id = createResults.data.createShip.id;
+
+      }
+
+      const splitLocation = pShip.location.split(",");
 
       const marker = L.marker([splitLocation[0], splitLocation[1]],         
-        {title: myShip, icon: new L.DivIcon({
+        {title: pShip.name, icon: new L.DivIcon({
         iconSize: [50, 50],
         className: "App-blinking",
         html:      '<div>' + sigil({
-          patp: '~' + myShip,
+          patp: '~' + pShip.name,
           renderer: stringRenderer,
           size: 50,
           colors: ['black', 'white'],
@@ -188,19 +218,15 @@ function App() {
 
       marker.on('click', function (e) {
 
-        setSelectedShip(myShip);
-        map.setView(new L.LatLng(location.split(",")[0], location.split(",")[1]), 18);
+        setSelectedShip(pShip.name);
+        map.setView(new L.LatLng(pShip.location.split(",")[0], pShip.location.split(",")[1]), 18);
         setDragged(false);
 
       });
 
-      marker.on('mouseover', function (e) {
+      map.addLayer(marker);
 
-        marker.openPopup();
-
-      });
-
-      setShips([ ...ships, {id: updateResults.data.createShip.id, name: myShip, location: location, marker: marker} ]);
+      setShips([ ...ships, {id: pShip.id, name: pShip.name, location: pShip.location, marker: marker} ]);
 
     }
 
@@ -218,8 +244,6 @@ function App() {
   }
 
   useEffect(() => {
-
-    // deleteShip('nopsed-nomber')
 
     delete L.Icon.Default.prototype._getIconUrl;
 
@@ -290,49 +314,102 @@ function App() {
 
   useEffect(() => {
 
-    if(map && ships) {
+    if(ships && map) {
 
-      updateShip();
+      //deleteShips('darret-hableb');
 
-      map.eachLayer((layer) => {
+      // return;
+      
+    }
 
-        if(layer['_latlng'] !== undefined){
+    if(map && ships && myShip && location) {
 
-            layer.remove();
-
-        }
-
-      });
-
-      ships.map(ship => {
-
-        const splitLocation = ship.location.split(",");
-
-        const popUpData = `<p><b>~${ship.name}</b><br>${splitLocation[0]}, ${splitLocation[1]}</p>`;
-
-        ship.marker.bindPopup(popUpData, {autoClose: false});
-
-        map.addLayer(ship.marker);        
-
-        return ship;
-
-      });
+      updateShip({name: myShip, location: location});
 
     }
 
     if(myShip && location && ships) {
 
-      createShip();
+      createShip({name: myShip, location: location});
 
     }
 
-    if(map && location && selectedShip && myShip && ships) {
+    if(map && ships && loaded) {
+
+      API.graphql(graphqlOperation(onUpdateShip)).subscribe({
+
+        next: ({ provider, value }) => 
+        {
+  
+            if(value['data']['onUpdateShip']['name'] !== myShip) {
+
+              setUpdatedShip(value['data']['onUpdateShip']);
+
+            }
+  
+        },
+  
+        error: error => console.warn(error)
+  
+      });
+
+      API.graphql(graphqlOperation(onCreateShip)).subscribe({
+
+        next: ({ provider, value }) => 
+        {
+  
+            if(value['data']['onCreateShip']['name'] !== myShip) {
+
+              setCreatedShip(value['data']['onCreateShip']);
+
+            }
+  
+        },
+  
+        error: error => console.warn(error)
+  
+      });
+
+      API.graphql(graphqlOperation(onDeleteShip)).subscribe({
+
+        next: ({ provider, value }) => 
+        {
+  
+            if(value['data']['onDeleteShip']['name'] !== myShip) {
+
+              setDeletedShip(value['data']['onDeleteShip']);
+
+            }
+  
+        },
+  
+        error: error => console.warn(error)
+  
+      });
+
+      setLoaded(false);
+
+    }
+
+    if(map && location && selectedShip && myShip && ships) {   
 
       if(!dragged) {
 
-        map.setView(new L.LatLng(location.split(',')[0],location.split(',')[1]), 18);
+        const shipIndex = ships.findIndex((ship => ship.name === selectedShip));
 
-        if(selectedShip == myShip){
+        if(shipIndex !== -1) {
+
+          if(ships[shipIndex].name === myShip) {
+
+            map.setView(new L.LatLng(location.split(',')[0], location.split(',')[1]), 18);
+
+          }
+
+          else {
+
+            map.setView(new L.LatLng(ships[shipIndex].location.split(',')[0], ships[shipIndex].location.split(',')[1]), 18);
+
+          }
 
           setDragged(false);
 
@@ -342,7 +419,31 @@ function App() {
 
     }
 
-  }, [location, map, ships, myShip, selectedShip, dragged]);
+    if(ships && map && updatedShip){
+    
+      updateShip({name: updatedShip['name'], location: updatedShip['location']});
+
+      setUpdatedShip(null);
+
+    }
+
+    if(ships && map && createdShip){
+    
+      createShip({id: createdShip['id'], name: createdShip['name'], location: createdShip['location']});
+
+      setCreatedShip(null);
+
+    }
+
+    if(ships && map && deletedShip){
+    
+      deleteShip(deletedShip['name']);
+
+      setDeletedShip(null);
+
+    }
+
+  }, [location, map, ships, myShip, selectedShip, dragged, loaded, updatedShip, createdShip, deletedShip]);
 
   return (
     <div className="App">
@@ -352,10 +453,10 @@ function App() {
         {!myShip && <p style={{marginTop: 0}} className="App-pulse">Connecting your Urbit ship with the <a className="App-link" href="https://chrome.google.com/webstore/detail/urbit-visor/oadimaacghcacmfipakhadejgalcaepg">Urbit Visor</a> web extension...</p>}
         {myShip && location && <table style={{marginBottom: '1em'}} className="App-pulse"><tbody><tr style={{cursor: 'pointer'}} onClick={() => {map.setView(new L.LatLng(location.split(",")[0], location.split(",")[1]), 18); setSelectedShip(myShip); setDragged(false);}}><td>{sigil({ patp: myShip, renderer: reactRenderer, size: 50, colors: ['black', 'white'] })}</td><td>&nbsp;~{myShip}</td></tr></tbody></table>}
         {myShip && !location && <p style={{marginTop: 0}} className="App-pulse"><span className="App-link">~{myShip}</span> Please share your location...</p>}
-        {<MapContainer attributionControl={false} center={[35, -95]} zoom={2.5} style={{height: 384, width: "95%"}} whenCreated={(map) => { setMap(map); map.setView(new L.LatLng(35, -95), 2.5); fetchShips(map);}}>
+        {<MapContainer attributionControl={false} center={[35, -95]} zoom={2.5} style={{height: 384, width: "95%"}} whenCreated={(map) => {fetchShips(map);}}>
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"/>
         </MapContainer>}
-        {ships && location && <div><br/><table><tbody>{ships.sort(function(a, b) { return a.name.localeCompare(b.name);}).map(function(ship, idx){return (myShip !== ship.name && <tr style={{cursor: 'pointer'}} onClick={() => {map.setView(new L.LatLng(ship.location.split(",")[0], ship.location.split(",")[1]), 18); setSelectedShip(ship.name);}} key={idx}><td>{sigil({ patp: ship.name, renderer: reactRenderer, size: 50, colors: ['black', 'white'] })}</td><td>&nbsp;~{ship.name}</td></tr>)})}</tbody></table></div>}
+        {ships && location && <div><br/><table><tbody>{ships.sort(function(a, b) { return a.name.localeCompare(b.name);}).map(function(ship, idx){return (myShip !== ship.name && <tr style={{cursor: 'pointer'}} onClick={() => {map.setView(new L.LatLng(ship.location.split(",")[0], ship.location.split(",")[1]), 18); setSelectedShip(ship.name); setDragged(false);}} key={idx}><td>{sigil({ patp: ship.name, renderer: reactRenderer, size: 50, colors: ['black', 'white'] })}</td><td>&nbsp;~{ship.name}</td></tr>)})}</tbody></table></div>}
         {<p className="App-link">Urbit Tile 2022</p> }
       </div>
     </div>
