@@ -86,7 +86,7 @@ function App() {
       
       if(ship.name === pShipName) {
 
-        // console.log('Deleting Ship: ' + pShipName + ' Id: ' + ship.id);
+        console.log('Deleting Ship: ' + pShipName + ' Id: ' + ship.id);
 
         API.graphql({ query: deleteShipMutation, variables: { input: { id: ship.id } }})
 
@@ -108,7 +108,7 @@ function App() {
 
     if (shipIndex !== -1) {
 
-      // console.log('Deleting Ship: ' + pShipName);
+      console.log('Deleting Ship: ' + pShipName);
 
       if(pShipName === myShip) {
 
@@ -134,7 +134,7 @@ function App() {
 
       if(ships[shipIndex].location !== pShip.location) {
 
-        // console.log('Updating Ship: ' + pShip.name + ' Location: ' + pShip.location);
+        console.log('Updating Ship: ' + pShip.name + ' Location: ' + pShip.location);
 
         var tempShip = {id: ships[shipIndex].id, name: ships[shipIndex].name, location: pShip.location};  
         
@@ -191,7 +191,7 @@ function App() {
 
     if(shipIndex === -1) {
 
-      // console.log('Creating Ship: Name: ' + pShip.name + ' Location: ' + pShip.location);
+      console.log('Creating Ship: Name: ' + pShip.name + ' Location: ' + pShip.location);
 
       if(pShip.name === myShip) {
 
@@ -314,6 +314,36 @@ function App() {
 
   useEffect(() => {
 
+    if(ships && map && updatedShip){
+    
+      updateShip({name: updatedShip['name'], location: updatedShip['location']});
+
+      setUpdatedShip(null);
+
+      return;
+
+    }
+
+    if(ships && map && createdShip){
+    
+      createShip({id: createdShip['id'], name: createdShip['name'], location: createdShip['location']});
+
+      setCreatedShip(null);
+
+      return;
+
+    }
+
+    if(ships && map && deletedShip){
+    
+      deleteShip(deletedShip['name']);
+
+      setDeletedShip(null);
+
+      return;
+
+    }
+
     if(ships && map) {
 
       //deleteShips('darret-hableb');
@@ -416,30 +446,6 @@ function App() {
         }
 
       }
-
-    }
-
-    if(ships && map && updatedShip){
-    
-      updateShip({name: updatedShip['name'], location: updatedShip['location']});
-
-      setUpdatedShip(null);
-
-    }
-
-    if(ships && map && createdShip){
-    
-      createShip({id: createdShip['id'], name: createdShip['name'], location: createdShip['location']});
-
-      setCreatedShip(null);
-
-    }
-
-    if(ships && map && deletedShip){
-    
-      deleteShip(deletedShip['name']);
-
-      setDeletedShip(null);
 
     }
 
