@@ -36,7 +36,7 @@ function App() {
       const splitLocation = ship.location.split(",");
 
       const marker = L.marker([splitLocation[0], splitLocation[1]], 
-        {title: ship.name, icon: new L.DivIcon({
+        {title: '~' + ship.name, icon: new L.DivIcon({
           iconSize: [50, 50],
           html:      '<div>' + sigil({
             patp: '~' + ship.name,
@@ -140,21 +140,14 @@ function App() {
         
         if(pShip.name === myShip) {
 
-          try {
-        
             await API.graphql({ query: updateShipMutation, variables: { input: tempShip }});
-
-          }
-          catch(error){
-
-          }
 
         }
 
         const splitLocation = pShip.location.split(",");
 
         const marker = L.marker([splitLocation[0], splitLocation[1]],         
-          {title: ships[shipIndex].name, icon: new L.DivIcon({
+          {title: '~' + ships[shipIndex].name, icon: new L.DivIcon({
             iconSize: [50, 50],
             className: "App-blinking",
             html:      '<div>' + sigil({
@@ -176,9 +169,13 @@ function App() {
       
         tempShip.marker = marker;
 
-        map.removeLayer(ships[shipIndex].marker);
+        if(map.hasLayer(ships[shipIndex].marker)) {
 
-        map.addLayer(tempShip.marker);
+          map.removeLayer(ships[shipIndex].marker);
+
+          map.addLayer(tempShip.marker);
+
+        }
 
         var tempShips = [...ships];
 
@@ -211,7 +208,7 @@ function App() {
       const splitLocation = pShip.location.split(",");
 
       const marker = L.marker([splitLocation[0], splitLocation[1]],         
-        {title: pShip.name, icon: new L.DivIcon({
+        {title: '~' + pShip.name, icon: new L.DivIcon({
         iconSize: [50, 50],
         className: "App-blinking",
         html:      '<div>' + sigil({
@@ -318,16 +315,6 @@ function App() {
 
   }, [myShip]);
 
-  useEffect(() => {
-
-    if(map && ships && myShip && location) {
-
-      updateShip({name: myShip, location: location});
-
-    }
-
-  },[map, ships, myShip, location])
-
 
   useEffect(() => {
 
@@ -337,6 +324,12 @@ function App() {
 
       // return;
       
+    }
+
+    if(map && ships && myShip && location) {
+
+      updateShip({name: myShip, location: location});
+
     }
 
     if(myShip && location && ships) {
