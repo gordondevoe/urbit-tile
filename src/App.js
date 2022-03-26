@@ -36,7 +36,7 @@ function App() {
       const splitLocation = ship.location.split(",");
 
       const marker = L.marker([splitLocation[0], splitLocation[1]], 
-        {title: ship.name, icon: new L.DivIcon({
+        {title: '~' + ship.name, icon: new L.DivIcon({
           iconSize: [50, 50],
           html:      '<div>' + sigil({
             patp: '~' + ship.name,
@@ -322,13 +322,13 @@ function App() {
       
     }
 
-    if(map && ships && myShip && location && loaded) {
+    if(map && ships && myShip && location && !loaded) {
 
       updateShip({name: myShip, location: location});
 
     }
 
-    if(myShip && location && ships) {
+    if(myShip && location && ships && !loaded) {
 
       createShip({name: myShip, location: location});
 
