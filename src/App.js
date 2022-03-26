@@ -110,7 +110,7 @@ function App() {
 
       console.log('Deleting Ship: ' + pShipName);
 
-      if(pShipName == myShip) {
+      if(pShipName === myShip) {
 
         API.graphql({ query: deleteShipMutation, variables: { input: { id: ships[shipIndex].id } }})
 
@@ -322,7 +322,7 @@ function App() {
       
     }
 
-    if(map && ships && myShip && location) {
+    if(map && ships && myShip && location && loaded) {
 
       updateShip({name: myShip, location: location});
 
@@ -344,6 +344,7 @@ function App() {
             if(value['data']['onUpdateShip']['name'] !== myShip) {
 
               setUpdatedShip(value['data']['onUpdateShip']);
+              console.log(myShip)
 
             }
   
@@ -419,7 +420,7 @@ function App() {
 
     }
 
-    if(ships && map && updatedShip){
+    if(ships && map && updatedShip) {
     
       updateShip({name: updatedShip['name'], location: updatedShip['location']});
 
@@ -427,7 +428,7 @@ function App() {
 
     }
 
-    if(ships && map && createdShip){
+    if(ships && map && createdShip) {
     
       createShip({id: createdShip['id'], name: createdShip['name'], location: createdShip['location']});
 
@@ -435,7 +436,7 @@ function App() {
 
     }
 
-    if(ships && map && deletedShip){
+    if(ships && map && deletedShip) {
     
       deleteShip(deletedShip['name']);
 
