@@ -452,6 +452,7 @@ function App() {
   return (
     <div className="App">
       <div className="App-body">
+        {<p style={{marginBottom: 0}}>Urbit Tile is under <a className="App-link" target="_blank" rel="noreferrer noopener" href="https://github.com/gordondevoe/urbit-tile">Development</a>.</p> }
         {!myShip && <p className="App-pulse">Connecting your Urbit ship with the <a className="App-link" href="https://chrome.google.com/webstore/detail/urbit-visor/oadimaacghcacmfipakhadejgalcaepg">Urbit Visor</a> web extension...</p>}
         {myShip && !location && <p className="App-pulse"><span className="App-link">~{myShip}</span> Please share your location...</p>}
         <p><a href="https://tile.computer"><img src={logo} alt="urbit-tile-logo"/></a></p>     
@@ -459,7 +460,6 @@ function App() {
         {<MapContainer attributionControl={false} center={[35, -95]} zoom={2.5} style={{height: 384, width: "95%"}} whenCreated={(map) => {fetchShips(map);}}><TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"/></MapContainer>}
         {ships && <div><br/><table><tbody>{ships.sort(function(a, b) { return a.name.localeCompare(b.name);}).map(function(ship, idx){return (selectedShip !== ship.name && <tr style={{cursor: 'pointer'}} onClick={() => {map.setView(new L.LatLng(ship.location.split(",")[0], ship.location.split(",")[1]), 18); setSelectedShip(ship.name); setDragged(false);}} key={idx}><td>{sigil({ patp: ship.name, renderer: reactRenderer, size: 50, colors: ['black', 'white'] })}</td><td>&nbsp;~{ship.name}</td></tr>)})}</tbody></table></div>}
         {<p className="App-link">Urbit Tile 2022</p> }
-        {<p>Urbit Tile is under <a className="App-link" target="_blank" rel="noreferrer noopener" href="https://github.com/gordondevoe/urbit-tile">Development</a>.</p> }       
       </div>
     </div>
   );
