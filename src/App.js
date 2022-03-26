@@ -132,7 +132,7 @@ function App() {
 
     if (shipIndex !== -1) {
 
-      if(ships[shipIndex].location !== pShip.location) {
+      if(parseFloat(ships[shipIndex].location.split(',')[0]) >= parseFloat(pShip.location.split(',')[0]) + 0.00001 || parseFloat(ships[shipIndex].location.split(',')[0]) <= parseFloat(pShip.location.split(',')[0]) - 0.00001 || parseFloat(ships[shipIndex].location.split(',')[1]) >= parseFloat(pShip.location.split(',')[1]) + 0.00001 || parseFloat(ships[shipIndex].location.split(',')[1]) <= parseFloat(pShip.location.split(',')[1])  - 0.00001) {
 
         // console.log('Updating Ship: ' + pShip.name + ' Location: ' + pShip.location);
 
