@@ -110,7 +110,7 @@ function App() {
 
       console.log('Deleting Ship: ' + pShipName);
 
-      if(pShipName === myShip) {
+      if(pShipName == myShip) {
 
         API.graphql({ query: deleteShipMutation, variables: { input: { id: ships[shipIndex].id } }})
 
@@ -314,36 +314,6 @@ function App() {
 
   useEffect(() => {
 
-    if(ships && map && updatedShip){
-    
-      updateShip({name: updatedShip['name'], location: updatedShip['location']});
-
-      setUpdatedShip(null);
-
-      return;
-
-    }
-
-    if(ships && map && createdShip){
-    
-      createShip({id: createdShip['id'], name: createdShip['name'], location: createdShip['location']});
-
-      setCreatedShip(null);
-
-      return;
-
-    }
-
-    if(ships && map && deletedShip){
-    
-      deleteShip(deletedShip['name']);
-
-      setDeletedShip(null);
-
-      return;
-
-    }
-
     if(ships && map) {
 
       //deleteShips('darret-hableb');
@@ -364,7 +334,7 @@ function App() {
 
     }
 
-    if(map && ships && loaded) {
+    if(map && ships && loaded && myShip) {
 
       API.graphql(graphqlOperation(onUpdateShip)).subscribe({
 
@@ -446,6 +416,30 @@ function App() {
         }
 
       }
+
+    }
+
+    if(ships && map && updatedShip){
+    
+      updateShip({name: updatedShip['name'], location: updatedShip['location']});
+
+      setUpdatedShip(null);
+
+    }
+
+    if(ships && map && createdShip){
+    
+      createShip({id: createdShip['id'], name: createdShip['name'], location: createdShip['location']});
+
+      setCreatedShip(null);
+
+    }
+
+    if(ships && map && deletedShip){
+    
+      deleteShip(deletedShip['name']);
+
+      setDeletedShip(null);
 
     }
 
