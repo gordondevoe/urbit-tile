@@ -33,8 +33,6 @@ function App() {
 
     const tempShips = apiData.data.listShips.items.map(ship => {
 
-      const splitLocation = ship.location.split(",");
-
       const date1 = new Date(ship.updatedAt);
 
       const date2 = Date.now();
@@ -45,17 +43,13 @@ function App() {
 
       var status = 'green'
 
-      if(diffMinutes > 10) {
-
-        status = 'yellow'
-
-      }
-
-      if(diffMinutes > 60) {
+      if(diffMinutes > 1) {
 
         status = 'red'
 
       }
+
+      const splitLocation = ship.location.split(",");
 
       const marker = L.marker([splitLocation[0], splitLocation[1]], 
         {title: '~' + ship.name, icon: new L.DivIcon({
@@ -232,11 +226,11 @@ function App() {
   
       if (shipIndex !== -1) {
   
-        if(ships[shipIndex].location !== pShip.location) {
+        if(ships[shipIndex].location !== pShip.location || ships[shipIndex].status !== pShip.status) {
           
           // console.log('Updating Ship: ' + pShip.name + ' Location: ' + pShip.location);
   
-          var tempShip = {id: ships[shipIndex].id, name: ships[shipIndex].name, location: pShip.location, status: 'green', updatedAt: pShip.updatedAt};
+          var tempShip = {id: ships[shipIndex].id, name: ships[shipIndex].name, location: pShip.location, status: pShip.status, updatedAt: pShip.updatedAt};
   
           const splitLocation = pShip.location.split(",");
   
@@ -357,44 +351,6 @@ function App() {
 
     if(map && ships && loaded) {
 
-      setInterval(() => {
-
-        ships.map(ship => {
-
-          const date1 = new Date(ship.updatedAt);
-
-          const date2 = Date.now();
-    
-          const diffTime = Math.abs(date2 - date1);
-    
-          const diffMinutes = Math.ceil(diffTime / (1000 * 60)); 
-    
-          var status = 'green'
-    
-          if(diffMinutes > 10) {
-    
-            status = 'yellow'
-    
-          }
-    
-          if(diffMinutes > 60) {
-    
-            status = 'red'
-    
-          }
-
-          if(status !== ship.status) {
-
-            updateShip({name: ship.name, location: ship.location, updatedAt: ship.updatedAt, status: status})
-
-          }
-
-          return {...ship, status: status}
-
-        });
-
-      }, 5000)
-
       API.graphql(graphqlOperation(onUpdateShip)).subscribe({
 
         next: ({ provider, value }) => 
@@ -467,7 +423,7 @@ function App() {
 
       if(updatedShip['name'] !== myShip) {
     
-        updateShip({name: updatedShip['name'], location: updatedShip['location'], updatedAt: updatedShip['updatedAt']});
+        updateShip({name: updatedShip['name'], location: updatedShip['location'], updatedAt: updatedShip['updatedAt'], status: 'green'});
 
       }
 
