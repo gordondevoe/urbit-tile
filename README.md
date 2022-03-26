@@ -11,7 +11,7 @@
 
 To get started first you need to install [Urbit Visor](https://chrome.google.com/webstore/detail/urbit-visor/oadimaacghcacmfipakhadejgalcaepg) from the Chrome Webstore or compile it yourself ([instructions](https://github.com/dcSpark/urbit-visor)).
 
-Once you've installed Urbit Visor in your local browser (any Chromium-derived browser like Chrome, Brave or Opera will work) provide the appropriate permissions for [Urbit Tile](https://tile.computer).
+Once you've installed Urbit Visor in your local browser (any Chromium-derived browser like Chrome, Brave, Opera or [Kiwi](https://play.google.com/store/apps/details?id=com.kiwibrowser.browser) will work) provide the appropriate permissions for [Urbit Tile](https://tile.computer).
 
 ## Compile It Yourself
 
