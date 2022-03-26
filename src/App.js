@@ -132,54 +132,50 @@ function App() {
 
     if (shipIndex !== -1) {
 
-      if(ships[shipIndex].location !== pShip.location) {
+      console.log('Updating Ship: ' + pShip.name + ' Location: ' + pShip.location);
 
-        console.log('Updating Ship: ' + pShip.name + ' Location: ' + pShip.location);
-
-        var tempShip = {id: ships[shipIndex].id, name: ships[shipIndex].name, location: pShip.location};  
-        
-        if(pShip.name === myShip) {
-        
-          await API.graphql({ query: updateShipMutation, variables: { input: tempShip }});
-
-        }
-
-        const splitLocation = pShip.location.split(",");
-
-        const marker = L.marker([splitLocation[0], splitLocation[1]],         
-          {title: ships[shipIndex].name, icon: new L.DivIcon({
-            iconSize: [50, 50],
-            className: "App-blinking",
-            html:      '<div>' + sigil({
-              patp: '~' + ships[shipIndex].name,
-              renderer: stringRenderer,
-              size: 50,
-              colors: ['black', 'white'],
-            }) + '</div>'
-          })
-        });
-
-        marker.on('click', () => {
-
-          setSelectedShip(pShip.name);
-          map.setView(new L.LatLng(pShip.location.split(",")[0], pShip.location.split(",")[1]), 18);
-          setDragged(false);
-
-        });
+      var tempShip = {id: ships[shipIndex].id, name: ships[shipIndex].name, location: pShip.location};  
       
-        tempShip.marker = marker;
-
-        map.removeLayer(ships[shipIndex].marker);
-
-        map.addLayer(tempShip.marker);
-
-        var tempShips = [...ships];
-
-        tempShips[shipIndex] = tempShip;
-
-        setShips(tempShips);
+      if(pShip.name === myShip && ships[shipIndex].location !== pShip.location) {
+      
+        await API.graphql({ query: updateShipMutation, variables: { input: tempShip }});
 
       }
+
+      const splitLocation = pShip.location.split(",");
+
+      const marker = L.marker([splitLocation[0], splitLocation[1]],         
+        {title: ships[shipIndex].name, icon: new L.DivIcon({
+          iconSize: [50, 50],
+          className: "App-blinking",
+          html:      '<div>' + sigil({
+            patp: '~' + ships[shipIndex].name,
+            renderer: stringRenderer,
+            size: 50,
+            colors: ['black', 'white'],
+          }) + '</div>'
+        })
+      });
+
+      marker.on('click', () => {
+
+        setSelectedShip(pShip.name);
+        map.setView(new L.LatLng(pShip.location.split(",")[0], pShip.location.split(",")[1]), 18);
+        setDragged(false);
+
+      });
+    
+      tempShip.marker = marker;
+
+      map.removeLayer(ships[shipIndex].marker);
+
+      map.addLayer(tempShip.marker);
+
+      var tempShips = [...ships];
+
+      tempShips[shipIndex] = tempShip;
+
+      setShips(tempShips);      
 
     }
 
