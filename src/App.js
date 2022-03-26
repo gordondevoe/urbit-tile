@@ -140,7 +140,7 @@ function App() {
         
         if(pShip.name === myShip) {
 
-            await API.graphql({ query: updateShipMutation, variables: { input: tempShip }});
+          await API.graphql({ query: updateShipMutation, variables: { input: tempShip }});
 
         }
 
@@ -457,10 +457,8 @@ function App() {
         {!myShip && <p style={{marginTop: 0}} className="App-pulse">Connecting your Urbit ship with the <a className="App-link" href="https://chrome.google.com/webstore/detail/urbit-visor/oadimaacghcacmfipakhadejgalcaepg">Urbit Visor</a> web extension...</p>}
         {myShip && location && selectedShip && ships && <table style={{marginBottom: '1em'}} className="App-pulse"><tbody><tr style={{cursor: 'pointer'}} onClick={() => {const shipIndex = ships.findIndex((ship => ship.name === selectedShip)); if(shipIndex !== -1) { map.setView(new L.LatLng(ships[shipIndex].location.split(",")[0], ships[shipIndex].location.split(",")[1]), 18); setSelectedShip(ships[shipIndex].name); setDragged(false); } }}><td>{sigil({ patp: myShip, renderer: reactRenderer, size: 50, colors: ['black', 'white'] })}</td><td>&nbsp;~{selectedShip}</td></tr></tbody></table>}
         {myShip && !location && <p style={{marginTop: 0}} className="App-pulse"><span className="App-link">~{myShip}</span> Please share your location...</p>}
-        {<MapContainer attributionControl={false} center={[35, -95]} zoom={2.5} style={{height: 384, width: "95%"}} whenCreated={(map) => {fetchShips(map);}}>
-          <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"/>
-        </MapContainer>}
-        {ships && location && <div><br/><table><tbody>{ships.sort(function(a, b) { return a.name.localeCompare(b.name);}).map(function(ship, idx){return (myShip !== ship.name && <tr style={{cursor: 'pointer'}} onClick={() => {map.setView(new L.LatLng(ship.location.split(",")[0], ship.location.split(",")[1]), 18); setSelectedShip(ship.name); setDragged(false);}} key={idx}><td>{sigil({ patp: ship.name, renderer: reactRenderer, size: 50, colors: ['black', 'white'] })}</td><td>&nbsp;~{ship.name}</td></tr>)})}</tbody></table></div>}
+        {<MapContainer attributionControl={false} center={[35, -95]} zoom={2.5} style={{height: 384, width: "95%"}} whenCreated={(map) => {fetchShips(map);}}><TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"/></MapContainer>}
+        {ships && location && selectedShip && <div><br/><table><tbody>{ships.sort(function(a, b) { return a.name.localeCompare(b.name);}).map(function(ship, idx){return (selectedShip !== ship.name && <tr style={{cursor: 'pointer'}} onClick={() => {map.setView(new L.LatLng(ship.location.split(",")[0], ship.location.split(",")[1]), 18); setSelectedShip(ship.name); setDragged(false);}} key={idx}><td>{sigil({ patp: ship.name, renderer: reactRenderer, size: 50, colors: ['black', 'white'] })}</td><td>&nbsp;~{ship.name}</td></tr>)})}</tbody></table></div>}
         {<p className="App-link">Urbit Tile 2022</p> }
       </div>
     </div>
