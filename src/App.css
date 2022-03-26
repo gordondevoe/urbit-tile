@@ -8,14 +8,8 @@
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
   .App-pulse {
     animation: App-text-pulse 2s infinite;
-  }
-  .App-blinking {
-    animation: App-icon-fade 1s;
   }
 }
 
@@ -34,15 +28,6 @@
   color: #4d4d4d;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
 @keyframes App-text-pulse {
   0% {
     color: #14171c;
@@ -50,10 +35,4 @@
   100% {
     color: white;
   }
-}
-
-@keyframes App-icon-fade {
-
-  from { opacity: 0.5; } 
-
 }

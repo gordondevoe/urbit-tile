@@ -35,6 +35,28 @@ function App() {
 
       const splitLocation = ship.location.split(",");
 
+      const date1 = new Date(ship.updatedAt);
+
+      const date2 = Date.now();
+
+      const diffTime = Math.abs(date2 - date1);
+
+      const diffMinutes = Math.ceil(diffTime / (1000 * 60)); 
+
+      var status = 'green'
+
+      if(diffMinutes > 10) {
+
+        status = 'yellow'
+
+      }
+
+      if(diffMinutes > 60) {
+
+        status = 'red'
+
+      }
+
       const marker = L.marker([splitLocation[0], splitLocation[1]], 
         {title: '~' + ship.name, icon: new L.DivIcon({
           iconSize: [50, 50],
@@ -42,7 +64,7 @@ function App() {
             patp: '~' + ship.name,
             renderer: stringRenderer,
             size: 50,
-            colors: ['black', 'white'],
+            colors: ['black', status],
            }) + '</div>'})
       });
 
@@ -54,9 +76,11 @@ function App() {
 
       });      
 
-      const tempShip = {...ship, marker: marker};
+      const tempShip = {...ship, marker: marker, status: status};
 
       pLoadedMap.addLayer(tempShip.marker);
+
+      console.log(tempShip);
 
       return tempShip;
 
@@ -214,19 +238,18 @@ function App() {
           
           // console.log('Updating Ship: ' + pShip.name + ' Location: ' + pShip.location);
   
-          var tempShip = {id: ships[shipIndex].id, name: ships[shipIndex].name, location: pShip.location};
+          var tempShip = {id: ships[shipIndex].id, name: ships[shipIndex].name, location: pShip.location, status: 'green', updatedAt: pShip.updatedAt};
   
           const splitLocation = pShip.location.split(",");
   
           const marker = L.marker([splitLocation[0], splitLocation[1]],         
             {title: '~' + ships[shipIndex].name, icon: new L.DivIcon({
               iconSize: [50, 50],
-              className: "App-blinking",
               html:      '<div>' + sigil({
                 patp: '~' + ships[shipIndex].name,
                 renderer: stringRenderer,
                 size: 50,
-                colors: ['black', 'white'],
+                colors: ['black', 'green'],
               }) + '</div>'
             })
           });
@@ -245,10 +268,10 @@ function App() {
   
           map.removeLayer(ships[shipIndex].marker);
   
-          map.addLayer(tempShip.marker)
-  
+          map.addLayer(tempShip.marker);
+
           var tempShips = [...ships];
-  
+
           tempShips[shipIndex] = tempShip;
   
           setShips(tempShips);
@@ -278,6 +301,8 @@ function App() {
           const createResults = await API.graphql({ query: createShipMutation, variables: { input: {name: myShip, location: location} } });
           
           pShip.id = createResults.data.createShip.id;
+
+          pShip.updatedAt = createResults.data.createShip.updatedAt;
   
         }
   
@@ -286,12 +311,11 @@ function App() {
         const marker = L.marker([splitLocation[0], splitLocation[1]],         
           {title: '~' + pShip.name, icon: new L.DivIcon({
           iconSize: [50, 50],
-          className: "App-blinking",
           html:      '<div>' + sigil({
             patp: '~' + pShip.name,
             renderer: stringRenderer,
             size: 50,
-            colors: ['black', 'white'],
+            colors: ['black', 'green'],
            }) + '</div>'
           })
         });
@@ -306,7 +330,7 @@ function App() {
   
         map.addLayer(marker);
   
-        setShips([ ...ships, {id: pShip.id, name: pShip.name, location: pShip.location, marker: marker} ]);
+        setShips([ ...ships, {id: pShip.id, name: pShip.name, location: pShip.location, marker: marker, status: 'green', updatedAt: pShip.updatedAt } ]);
   
       }
   
@@ -321,7 +345,9 @@ function App() {
 
     if(map && ships && myShip && location && selectedShip) {
 
-      updateShip({name: myShip, location: location});
+      var updatedAtDate = new Date();
+
+      updateShip({name: myShip, location: location, updatedAt: updatedAtDate.toISOString()});
 
     }
 
@@ -333,17 +359,57 @@ function App() {
 
     if(map && ships && loaded) {
 
+      setInterval(() => {
+
+        var changed = false;
+
+        var tempShips = ships.map(ship => {
+
+          const date1 = new Date(ship.updatedAt);
+
+          const date2 = Date.now();
+    
+          const diffTime = Math.abs(date2 - date1);
+    
+          const diffMinutes = Math.ceil(diffTime / (1000 * 60)); 
+    
+          var status = 'green'
+    
+          if(diffMinutes > 10) {
+    
+            status = 'yellow'
+    
+          }
+    
+          if(diffMinutes > 60) {
+    
+            status = 'red'
+    
+          }
+
+          if(status !== ship.status) {
+
+            changed = true;
+
+          }
+
+          return {...ship, status: status}
+
+        });
+
+        if(changed === true) {
+
+          setShips(tempShips);
+
+        }
+
+      }, 5000)
+
       API.graphql(graphqlOperation(onUpdateShip)).subscribe({
 
         next: ({ provider, value }) => 
         {
-  
-            if(value['data']['onUpdateShip']['name'] !== myShip) {
-
-              setUpdatedShip(value['data']['onUpdateShip']);
-
-            }
-  
+          setUpdatedShip(value['data']['onUpdateShip']);  
         },
   
         error: error => console.warn(error)
@@ -354,12 +420,7 @@ function App() {
 
         next: ({ provider, value }) => 
         {
-  
-            if(value['data']['onCreateShip']['name'] !== myShip) {
-
-              setCreatedShip(value['data']['onCreateShip']);
-
-            }
+          setCreatedShip(value['data']['onCreateShip']);           
   
         },
   
@@ -371,13 +432,9 @@ function App() {
 
         next: ({ provider, value }) => 
         {
-  
-            if(value['data']['onDeleteShip']['name'] !== myShip) {
 
-              setDeletedShip(value['data']['onDeleteShip']);
+          setDeletedShip(value['data']['onDeleteShip']);
 
-            }
-  
         },
   
         error: error => console.warn(error)
@@ -417,24 +474,36 @@ function App() {
     }
 
     if(ships && map && updatedShip) {
+
+      if(updatedShip['name'] !== myShip) {
     
-      updateShip({name: updatedShip['name'], location: updatedShip['location']});
+        updateShip({name: updatedShip['name'], location: updatedShip['location'], updatedAt: updatedShip['updatedAt']});
+
+      }
 
       setUpdatedShip(null);
 
     }
 
     if(ships && map && createdShip) {
+
+      if(createdShip['name'] !== myShip) {
     
-      createShip({id: createdShip['id'], name: createdShip['name'], location: createdShip['location']});
+        createShip({id: createdShip['id'], name: createdShip['name'], location: createdShip['location'], updatedAt: createdShip['updatedAt']});
+
+      }
 
       setCreatedShip(null);
 
     }
 
     if(ships && map && deletedShip) {
+
+      if(createdShip['name'] !== myShip) {
     
-      deleteShip(deletedShip['name']);
+        deleteShip(deletedShip['name']);
+
+      }
 
       setDeletedShip(null);
 
@@ -447,10 +516,11 @@ function App() {
       <div className="App-body">
         {!myShip && <p className="App-pulse">Connecting your Urbit ship with the <a className="App-link" target="_blank" rel="noreferrer noopener" href="https://chrome.google.com/webstore/detail/urbit-visor/oadimaacghcacmfipakhadejgalcaepg">Urbit Visor</a> web extension...</p>}
         {myShip && !location && <p className="App-pulse"><span className="App-link">~{myShip}</span> Please share your location...</p>}
-        <p><a href="https://tile.computer"><img src={logo} alt="urbit-tile-logo"/></a></p>     
-        {selectedShip && ships && <table style={{marginBottom: '1em'}} className="App-pulse"><tbody><tr style={{cursor: 'pointer'}} onClick={() => {const shipIndex = ships.findIndex((ship => ship.name === selectedShip)); if(shipIndex !== -1) { map.setView(new L.LatLng(ships[shipIndex].location.split(",")[0], ships[shipIndex].location.split(",")[1]), 18); setSelectedShip(ships[shipIndex].name); setDragged(false); } }}><td>{sigil({ patp: selectedShip, renderer: reactRenderer, size: 50, colors: ['black', 'white'] })}</td><td>&nbsp;~{selectedShip}</td></tr></tbody></table>}
+        <p><a href="https://tile.computer"><img src={logo} alt="urbit-tile-logo"/></a></p> 
+        {selectedShip && ships && <table style={{marginBottom: '1em'}} className="App-pulse"><tbody><tr style={{cursor: 'pointer'}} onClick={() => {const shipIndex = ships.findIndex((ship => ship.name === selectedShip)); if(shipIndex !== -1) { map.setView(new L.LatLng(ships[shipIndex].location.split(",")[0], ships[shipIndex].location.split(",")[1]), 18); setSelectedShip(ships[shipIndex].name); setDragged(false); } }}><td>
+        {sigil({ patp: selectedShip, renderer: reactRenderer, size: 50, colors: ['black', ships[ships.findIndex((ship => ship.name === selectedShip))].status] })}</td><td>&nbsp;~{selectedShip}</td></tr></tbody></table>}
         {<MapContainer attributionControl={false} center={[35, -95]} zoom={2.5} style={{height: 384, width: "95%"}} whenCreated={(map) => {fetchShips(map);}}><TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"/></MapContainer>}
-        {ships && <div><br/><table><tbody>{ships.sort(function(a, b) { return a.name.localeCompare(b.name);}).map(function(ship, idx){return (selectedShip !== ship.name && <tr style={{cursor: 'pointer'}} onClick={() => {map.setView(new L.LatLng(ship.location.split(",")[0], ship.location.split(",")[1]), 18); setSelectedShip(ship.name); setDragged(false);}} key={idx}><td>{sigil({ patp: ship.name, renderer: reactRenderer, size: 50, colors: ['black', 'white'] })}</td><td>&nbsp;~{ship.name}</td></tr>)})}</tbody></table></div>}
+        {ships && <div><br/><table><tbody>{ships.sort(function(a, b) { return b.updatedAt.localeCompare(a.updatedAt);}).map(function(ship, idx){return (selectedShip !== ship.name && <tr style={{cursor: 'pointer'}} onClick={() => {map.setView(new L.LatLng(ship.location.split(",")[0], ship.location.split(",")[1]), 18); setSelectedShip(ship.name); setDragged(false);}} key={idx}><td>{sigil({ patp: ship.name, renderer: reactRenderer, size: 50, colors: ['black', ship.status] })}</td><td>&nbsp;~{ship.name}</td></tr>)})}</tbody></table></div>}
         {<p className="App-link"><a className="App-link" target="_blank" rel="noreferrer noopener" href="https://github.com/gordondevoe/urbit-tile">Urbit Tile 2022</a></p> }
       </div>
     </div>
