@@ -36,7 +36,7 @@ function App() {
       const splitLocation = ship.location.split(",");
 
       const marker = L.marker([splitLocation[0], splitLocation[1]], 
-        {title: '~' + ship.name, icon: new L.DivIcon({
+        {title: ship.name, icon: new L.DivIcon({
           iconSize: [50, 50],
           html:      '<div>' + sigil({
             patp: '~' + ship.name,
@@ -86,7 +86,7 @@ function App() {
       
       if(ship.name === pShipName) {
 
-        console.log('Deleting Ship: ' + pShipName + ' Id: ' + ship.id);
+        // console.log('Deleting Ship: ' + pShipName + ' Id: ' + ship.id);
 
         API.graphql({ query: deleteShipMutation, variables: { input: { id: ship.id } }})
 
@@ -108,7 +108,7 @@ function App() {
 
     if (shipIndex !== -1) {
 
-      console.log('Deleting Ship: ' + pShipName);
+      // console.log('Deleting Ship: ' + pShipName);
 
       if(pShipName === myShip) {
 
@@ -132,50 +132,61 @@ function App() {
 
     if (shipIndex !== -1) {
 
-      console.log('Updating Ship: ' + pShip.name + ' Location: ' + pShip.location);
+      if(ships[shipIndex].location !== pShip.location) {
 
-      var tempShip = {id: ships[shipIndex].id, name: ships[shipIndex].name, location: pShip.location};  
+        // console.log('Updating Ship: ' + pShip.name + ' Location: ' + pShip.location);
+
+        var tempShip = {id: ships[shipIndex].id, name: ships[shipIndex].name, location: pShip.location};  
+        
+        if(pShip.name === myShip) {
+
+          try {
+        
+            await API.graphql({ query: updateShipMutation, variables: { input: tempShip }});
+
+          }
+          catch(error){
+
+          }
+
+        }
+
+        const splitLocation = pShip.location.split(",");
+
+        const marker = L.marker([splitLocation[0], splitLocation[1]],         
+          {title: ships[shipIndex].name, icon: new L.DivIcon({
+            iconSize: [50, 50],
+            className: "App-blinking",
+            html:      '<div>' + sigil({
+              patp: '~' + ships[shipIndex].name,
+              renderer: stringRenderer,
+              size: 50,
+              colors: ['black', 'white'],
+            }) + '</div>'
+          })
+        });
+
+        marker.on('click', () => {
+
+          setSelectedShip(pShip.name);
+          map.setView(new L.LatLng(pShip.location.split(",")[0], pShip.location.split(",")[1]), 18);
+          setDragged(false);
+
+        });
       
-      if(pShip.name === myShip && ships[shipIndex].location !== pShip.location) {
-      
-        await API.graphql({ query: updateShipMutation, variables: { input: tempShip }});
+        tempShip.marker = marker;
+
+        map.removeLayer(ships[shipIndex].marker);
+
+        map.addLayer(tempShip.marker);
+
+        var tempShips = [...ships];
+
+        tempShips[shipIndex] = tempShip;
+
+        setShips(tempShips);
 
       }
-
-      const splitLocation = pShip.location.split(",");
-
-      const marker = L.marker([splitLocation[0], splitLocation[1]],         
-        {title: ships[shipIndex].name, icon: new L.DivIcon({
-          iconSize: [50, 50],
-          className: "App-blinking",
-          html:      '<div>' + sigil({
-            patp: '~' + ships[shipIndex].name,
-            renderer: stringRenderer,
-            size: 50,
-            colors: ['black', 'white'],
-          }) + '</div>'
-        })
-      });
-
-      marker.on('click', () => {
-
-        setSelectedShip(pShip.name);
-        map.setView(new L.LatLng(pShip.location.split(",")[0], pShip.location.split(",")[1]), 18);
-        setDragged(false);
-
-      });
-    
-      tempShip.marker = marker;
-
-      map.removeLayer(ships[shipIndex].marker);
-
-      map.addLayer(tempShip.marker);
-
-      var tempShips = [...ships];
-
-      tempShips[shipIndex] = tempShip;
-
-      setShips(tempShips);      
 
     }
 
@@ -187,7 +198,7 @@ function App() {
 
     if(shipIndex === -1) {
 
-      console.log('Creating Ship: Name: ' + pShip.name + ' Location: ' + pShip.location);
+      // console.log('Creating Ship: Name: ' + pShip.name + ' Location: ' + pShip.location);
 
       if(pShip.name === myShip) {
 
@@ -307,6 +318,16 @@ function App() {
 
   }, [myShip]);
 
+  useEffect(() => {
+
+    if(map && ships && myShip && location) {
+
+      updateShip({name: myShip, location: location});
+
+    }
+
+  },[map, ships, myShip, location])
+
 
   useEffect(() => {
 
@@ -318,13 +339,7 @@ function App() {
       
     }
 
-    if(map && ships && myShip && location && !loaded) {
-
-      updateShip({name: myShip, location: location});
-
-    }
-
-    if(myShip && location && ships && !loaded) {
+    if(myShip && location && ships) {
 
       createShip({name: myShip, location: location});
 
@@ -340,7 +355,6 @@ function App() {
             if(value['data']['onUpdateShip']['name'] !== myShip) {
 
               setUpdatedShip(value['data']['onUpdateShip']);
-              console.log(myShip)
 
             }
   
