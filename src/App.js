@@ -331,7 +331,7 @@ function App() {
 
     }
 
-    if(map && ships && loaded && myShip) {
+    if(map && ships && loaded) {
 
       API.graphql(graphqlOperation(onUpdateShip)).subscribe({
 
