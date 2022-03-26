@@ -123,8 +123,6 @@ function App() {
 
           const coordinates = position.coords;
 
-          console.log(coordinates);
-
           setLocation(`${coordinates.latitude},${coordinates.longitude}`);
 
         }
@@ -162,6 +160,26 @@ function App() {
 
   useEffect(() => {
 
+    async function deleteAnyShip(pShipName) {
+
+      const shipIndex = ships.findIndex((ship => ship.name === pShipName));
+  
+      if (shipIndex !== -1) {
+  
+        // console.log('Deleting Ship: ' + pShipName);
+  
+        const tempShips = ships.filter(ship => ship.name !== pShipName);
+  
+        map.removeLayer(ships[shipIndex].marker);
+  
+        setShips(tempShips);  
+  
+        API.graphql({ query: deleteShipMutation, variables: { input: { id: ships[shipIndex].id } }})        
+      
+      }
+  
+    }  
+
     async function deleteShip(pShipName) {
 
       const shipIndex = ships.findIndex((ship => ship.name === pShipName));
@@ -170,17 +188,17 @@ function App() {
   
         // console.log('Deleting Ship: ' + pShipName);
   
-        if(pShipName === myShip) {
-  
-          API.graphql({ query: deleteShipMutation, variables: { input: { id: ships[shipIndex].id } }})
-  
-        }
-  
         const tempShips = ships.filter(ship => ship.name !== pShipName);
   
         map.removeLayer(ships[shipIndex].marker);
   
         setShips(tempShips);  
+
+        if(pShipName === myShip) {
+  
+          API.graphql({ query: deleteShipMutation, variables: { input: { id: ships[shipIndex].id } }})
+  
+        }
       
       }
   
@@ -194,7 +212,7 @@ function App() {
   
         if(ships[shipIndex].location !== pShip.location) {
           
-          console.log('Updating Ship: ' + pShip.name + ' Location: ' + pShip.location);
+          // console.log('Updating Ship: ' + pShip.name + ' Location: ' + pShip.location);
   
           var tempShip = {id: ships[shipIndex].id, name: ships[shipIndex].name, location: pShip.location};
   
@@ -293,6 +311,13 @@ function App() {
       }
   
     }  
+
+    if(map && ships) {
+
+      // deleteAnyShip('nopsed-nomber');
+
+      // return;
+    }
 
     if(map && ships && myShip && location && selectedShip) {
 
