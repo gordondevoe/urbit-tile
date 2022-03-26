@@ -132,8 +132,8 @@ function App() {
 
     if (shipIndex !== -1) {
 
-      if(parseFloat(ships[shipIndex].location.split(',')[0]) >= parseFloat(pShip.location.split(',')[0]) + 0.00001 || parseFloat(ships[shipIndex].location.split(',')[0]) <= parseFloat(pShip.location.split(',')[0]) - 0.00001 || parseFloat(ships[shipIndex].location.split(',')[1]) >= parseFloat(pShip.location.split(',')[1]) + 0.00001 || parseFloat(ships[shipIndex].location.split(',')[1]) <= parseFloat(pShip.location.split(',')[1])  - 0.00001) {
-
+      if(parseFloat(ships[shipIndex].location.split(',')[0]) >= parseFloat(pShip.location.split(',')[0]) + 0.000001 || parseFloat(ships[shipIndex].location.split(',')[0]) <= parseFloat(pShip.location.split(',')[0]) - 0.000001 || parseFloat(ships[shipIndex].location.split(',')[1]) >= parseFloat(pShip.location.split(',')[1]) + 0.000001 || parseFloat(ships[shipIndex].location.split(',')[1]) <= parseFloat(pShip.location.split(',')[1])  - 0.000001) {
+      
         // console.log('Updating Ship: ' + pShip.name + ' Location: ' + pShip.location);
 
         var tempShip = {id: ships[shipIndex].id, name: ships[shipIndex].name, location: pShip.location};  
@@ -162,7 +162,9 @@ function App() {
         marker.on('click', () => {
 
           setSelectedShip(pShip.name);
+
           map.setView(new L.LatLng(pShip.location.split(",")[0], pShip.location.split(",")[1]), 18);
+          
           setDragged(false);
 
         });
@@ -271,8 +273,8 @@ function App() {
 
         const options = {
           enableHighAccuracy: true,
-          timeout:5000,
-          maximumAge: 0
+          timeout: 5000,
+          maximumAge: 5000
         };
       
         function success(position) {
