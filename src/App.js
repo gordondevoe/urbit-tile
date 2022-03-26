@@ -80,8 +80,6 @@ function App() {
 
       pLoadedMap.addLayer(tempShip.marker);
 
-      console.log(tempShip);
-
       return tempShip;
 
     })
@@ -249,7 +247,7 @@ function App() {
                 patp: '~' + ships[shipIndex].name,
                 renderer: stringRenderer,
                 size: 50,
-                colors: ['black', 'green'],
+                colors: ['black', pShip.status],
               }) + '</div>'
             })
           });
@@ -347,7 +345,7 @@ function App() {
 
       var updatedAtDate = new Date();
 
-      updateShip({name: myShip, location: location, updatedAt: updatedAtDate.toISOString()});
+      updateShip({name: myShip, location: location, updatedAt: updatedAtDate.toISOString(), status: 'green'});
 
     }
 
@@ -361,9 +359,7 @@ function App() {
 
       setInterval(() => {
 
-        var changed = false;
-
-        var tempShips = ships.map(ship => {
+        ships.map(ship => {
 
           const date1 = new Date(ship.updatedAt);
 
@@ -389,19 +385,13 @@ function App() {
 
           if(status !== ship.status) {
 
-            changed = true;
+            updateShip({name: ship.name, location: ship.location, updatedAt: ship.updatedAt, status: status})
 
           }
 
           return {...ship, status: status}
 
         });
-
-        if(changed === true) {
-
-          setShips(tempShips);
-
-        }
 
       }, 5000)
 
