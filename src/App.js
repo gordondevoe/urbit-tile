@@ -37,7 +37,9 @@ function App() {
 
       const date1 = new Date(ship.updatedAt);
 
-      var seconds = Math.floor((Date.now() - date1) / 1000);
+      const date2 = new Date().getTime();
+
+      var seconds = Math.abs(date1.getTime() - date2) / 1000;
 
       var status = 'green'
 
@@ -361,8 +363,10 @@ function App() {
 
         const date1 = new Date(ship.updatedAt);
 
-        var seconds = Math.floor((Date.now() - date1) / 1000);
+        const date2 = new Date().getTime();
 
+        var seconds = Math.abs(date1.getTime() - date2) / 1000;
+  
         var status = 'green'
   
         if(seconds > 10) {
@@ -471,7 +475,7 @@ function App() {
 
       const updatedAtDate = new Date();
 
-      updateShip({name: myShip, location: location, updatedAt: updatedAtDate.toISOString(), status: 'green'}, true);     
+      // updateShip({name: myShip, location: location, updatedAt: updatedAtDate.toISOString(), status: 'green'}, true);     
       
       setInitialized(false)
 
