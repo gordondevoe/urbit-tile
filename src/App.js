@@ -43,7 +43,7 @@ function App() {
 
       var status = 'green'
 
-      if(diffMinutes > 1) {
+      if(diffMinutes > 30) {
 
         status = 'red'
 
@@ -339,7 +339,7 @@ function App() {
 
       var updatedAtDate = new Date();
 
-      updateShip({name: myShip, location: location, updatedAt: updatedAtDate.toISOString(), status: 'green'});
+      updateShip({name: myShip, location: location, updatedAt: updatedAtDate.toISOString(), status: 'green'});       
 
     }
 
