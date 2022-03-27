@@ -23,7 +23,6 @@ function App() {
   const [selectedShip, setSelectedShip] = useState(null);
   const [dragged, setDragged] = useState(false);
   const [loaded, setLoaded] = useState(false);
-  const [initialized, setInitialized] = useState(false);
   const [timeout, setTimeout] = useState(false);
   const [updatedShip, setUpdatedShip] = useState(null);
   const [createdShip, setCreatedShip] = useState(null);
@@ -41,13 +40,13 @@ function App() {
 
       var status = 'green'
 
-      if(seconds > 10) {
+      if(seconds > 60) {
 
         status = 'yellow'
 
       }
 
-      if(seconds > 60) {
+      if(seconds > 60 * 60) {
 
         status = 'red'
 
@@ -232,7 +231,7 @@ function App() {
   
         if(ships[shipIndex].location !== pShip.location || pForce) {
           
-          console.log('Updating Ship: ' + pShip.name + ' Location: ' + pShip.location + ' Status: ' + pShip.status);
+          // console.log('Updating Ship: ' + pShip.name + ' Location: ' + pShip.location + ' Status: ' + pShip.status);
   
           var tempShip = {id: ships[shipIndex].id, name: ships[shipIndex].name, location: pShip.location, status: pShip.status, updatedAt: pShip.updatedAt};
   
@@ -363,19 +362,19 @@ function App() {
 
         var status = 'green'
   
-        if(seconds > 10) {
+        if(seconds > 60) {
   
           status = 'yellow'
   
         }
   
-        if(seconds > 60) {
+        if(seconds > 60 * 60) {
   
           status = 'red'
   
         }
 
-        if(status != ship.status) {
+        if(status !== ship.status) {
 
           updateShip({name: ship.name, location: ship.location, updatedAt: ship.updatedAt, status: status}, true);
 
