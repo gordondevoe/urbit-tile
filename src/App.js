@@ -37,9 +37,7 @@ function App() {
 
       const date1 = new Date(ship.updatedAt);
 
-      const date2 = new Date().getTime();
-
-      var seconds = Math.abs(date1.getTime() - date2) / 1000;
+      var seconds = Math.floor((Date.now() - date1) / 1000);
 
       var status = 'green'
 
@@ -97,8 +95,6 @@ function App() {
     setMap(pLoadedMap);    
 
     setLoaded(true);
-
-    setInitialized(true);
 
   }
 
@@ -233,10 +229,10 @@ function App() {
       const shipIndex = ships.findIndex((ship => ship.name === pShip.name));
   
       if (shipIndex !== -1) {
-
-        if(ships[shipIndex].location !== pShip.location || (pForce && pShip.status !== ships[shipIndex].status)) {
+  
+        if(ships[shipIndex].location !== pShip.location || pForce) {
           
-          // console.log('Updating Ship: ' + pShip.name + ' Location: ' + pShip.location + ' Status: ' + pShip.status);
+          console.log('Updating Ship: ' + pShip.name + ' Location: ' + pShip.location + ' Status: ' + pShip.status);
   
           var tempShip = {id: ships[shipIndex].id, name: ships[shipIndex].name, location: pShip.location, status: pShip.status, updatedAt: pShip.updatedAt};
   
@@ -266,8 +262,8 @@ function App() {
         
           tempShip.marker = marker;
   
-          ships[shipIndex].marker.remove();
-    
+          map.removeLayer(ships[shipIndex].marker);
+  
           map.addLayer(tempShip.marker);
 
           var tempShips = [...ships];
@@ -276,7 +272,7 @@ function App() {
   
           setShips(tempShips);
 
-          if(pShip.name === myShip) {
+          if(pShip.name === myShip && !pForce) {
   
             await API.graphql({ query: updateShipMutation, variables: { input: { id: tempShip.id, name: tempShip.name, location: tempShip.location } } });
   
@@ -341,35 +337,30 @@ function App() {
       // deleteAnyShip('nopsed-nomber');
 
       // return;
-
     }
 
     if(map && myShip && location && ships) {
 
-      const updatedAtDate = new Date();
-
-      createShip({name: myShip, location: location, updatedAt: updatedAtDate.toISOString(), status: 'green'});
+      createShip({name: myShip, location: location});
 
     }
 
     if(map && ships && myShip && location && selectedShip && !timeout) {
 
-      const updatedAtDate = new Date();
+      var updatedAtDate = new Date();
 
-      updateShip({name: myShip, location: location, updatedAt: updatedAtDate.toISOString(), status: 'green'}, false);       
+      updateShip({name: myShip, location: location, updatedAt: updatedAtDate.toISOString(), status: 'green'});       
 
     }
 
-    if(map && ships && timeout) {
+    if(map && ships && timeout && myShip && selectedShip && timeout) {
 
       ships.map(ship => {
 
         const date1 = new Date(ship.updatedAt);
 
-        const date2 = new Date().getTime();
+        var seconds = Math.floor((Date.now() - date1) / 1000);
 
-        var seconds = Math.abs(date1.getTime() - date2) / 1000;
-  
         var status = 'green'
   
         if(seconds > 10) {
@@ -384,7 +375,11 @@ function App() {
   
         }
 
-        updateShip({name: ship.name, location: ship.location, updatedAt: ship.updatedAt, status: status}, true);
+        if(status != ship.status) {
+
+          updateShip({name: ship.name, location: ship.location, updatedAt: ship.updatedAt, status: status}, true);
+
+        }
 
         return {...ship, status: status}
 
@@ -474,22 +469,11 @@ function App() {
 
     }
 
-    if(map && ships && myShip && location && selectedShip && !timeout && initialized) {
-
-      const updatedAtDate = new Date();
-
-      // updateShip({name: myShip, location: location, updatedAt: updatedAtDate.toISOString(), status: 'green'}, true);     
-      
-      setInitialized(false)
-
-    }
-
-
     if(ships && map && updatedShip) {
 
       if(updatedShip['name'] !== myShip) {
     
-        updateShip({name: updatedShip['name'], location: updatedShip['location'], updatedAt: updatedShip['updatedAt'], status: 'green'}, false);
+        updateShip({name: updatedShip['name'], location: updatedShip['location'], updatedAt: updatedShip['updatedAt'], status: 'green'});
 
       }
 
@@ -521,7 +505,7 @@ function App() {
 
     }
 
-  }, [location, map, ships, myShip, selectedShip, dragged, loaded, updatedShip, createdShip, deletedShip, timeout, initialized]);
+  }, [location, map, ships, myShip, selectedShip, dragged, loaded, updatedShip, createdShip, deletedShip, timeout]);
 
   return (
     <div className="App">
@@ -529,7 +513,8 @@ function App() {
         {!myShip && <p className="App-pulse">Connecting your Urbit ship with the <a className="App-link" target="_blank" rel="noreferrer noopener" href="https://chrome.google.com/webstore/detail/urbit-visor/oadimaacghcacmfipakhadejgalcaepg">Urbit Visor</a> web extension...</p>}
         {myShip && !location && <p className="App-pulse"><span className="App-link">~{myShip}</span> Please share your location...</p>}
         <p><a href="https://tile.computer"><img src={logo} alt="urbit-tile-logo"/></a></p> 
-        {selectedShip && ships && <table style={{marginBottom: '1em'}} className="App-pulse"><tbody><tr style={{cursor: 'pointer'}} onClick={() => {const shipIndex = ships.findIndex((ship => ship.name === selectedShip)); if(shipIndex !== -1) { map.setView(new L.LatLng(ships[shipIndex].location.split(",")[0], ships[shipIndex].location.split(",")[1]), 18); setSelectedShip(ships[shipIndex].name); setDragged(false); } }}><td>{sigil({ patp: selectedShip, renderer: reactRenderer, size: 50, colors: ['black', ships[ships.findIndex((ship => ship.name === selectedShip))] && ships[ships.findIndex((ship => ship.name === selectedShip))].status] })}</td><td>&nbsp;~{selectedShip}</td></tr></tbody></table>}
+        {selectedShip && ships && <table style={{marginBottom: '1em'}} className="App-pulse"><tbody><tr style={{cursor: 'pointer'}} onClick={() => {const shipIndex = ships.findIndex((ship => ship.name === selectedShip)); if(shipIndex !== -1) { map.setView(new L.LatLng(ships[shipIndex].location.split(",")[0], ships[shipIndex].location.split(",")[1]), 18); setSelectedShip(ships[shipIndex].name); setDragged(false); } }}><td>
+        {sigil({ patp: selectedShip, renderer: reactRenderer, size: 50, colors: ['black', ships[ships.findIndex((ship => ship.name === selectedShip))] && ships[ships.findIndex((ship => ship.name === selectedShip))].status] })}</td><td>&nbsp;~{selectedShip}</td></tr></tbody></table>}
         {<MapContainer attributionControl={false} center={[35, -95]} zoom={2.5} style={{height: 384, width: "95%"}} whenCreated={(map) => {fetchShips(map);}}><TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"/></MapContainer>}
         {ships && <div><br/><table><tbody>{ships.sort(function(a, b) { return b.updatedAt.localeCompare(a.updatedAt);}).map(function(ship, idx){return (selectedShip !== ship.name && <tr style={{cursor: 'pointer'}} onClick={() => {map.setView(new L.LatLng(ship.location.split(",")[0], ship.location.split(",")[1]), 18); setSelectedShip(ship.name); setDragged(false);}} key={idx}><td>{sigil({ patp: ship.name, renderer: reactRenderer, size: 50, colors: ['black', ship.status] })}</td><td>&nbsp;~{ship.name}</td></tr>)})}</tbody></table></div>}
         {<p style={{marginBottom: 0}} >Urbit Tile is under <a className="App-link" target="_blank" rel="noreferrer noopener" href="https://github.com/gordondevoe/urbit-tile">Development</a>.</p> }
