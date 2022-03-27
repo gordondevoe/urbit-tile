@@ -96,6 +96,8 @@ function App() {
 
     setLoaded(true);
 
+    setInitialized(true);
+
   }
 
   function setShipData() {    
@@ -224,13 +226,13 @@ function App() {
   
     }  
   
-    async function updateShip(pShip, pHard) {
+    async function updateShip(pShip, pForce) {
     
       const shipIndex = ships.findIndex((ship => ship.name === pShip.name));
   
       if (shipIndex !== -1) {
 
-        if(ships[shipIndex].location !== pShip.location || (pHard && pShip.status !== ships[shipIndex].status)) {
+        if(ships[shipIndex].location !== pShip.location || (pForce && pShip.status !== ships[shipIndex].status)) {
           
           // console.log('Updating Ship: ' + pShip.name + ' Location: ' + pShip.location + ' Status: ' + pShip.status);
   
@@ -262,8 +264,8 @@ function App() {
         
           tempShip.marker = marker;
   
-          map.removeLayer(ships[shipIndex].marker);
-  
+          ships[shipIndex].marker.remove();
+    
           map.addLayer(tempShip.marker);
 
           var tempShips = [...ships];
@@ -350,16 +352,6 @@ function App() {
       const updatedAtDate = new Date();
 
       updateShip({name: myShip, location: location, updatedAt: updatedAtDate.toISOString(), status: 'green'}, false);       
-
-    }
-
-    if(map && ships && myShip && location && selectedShip && !timeout && !initialized) {
-
-      const updatedAtDate = new Date();
-
-      updateShip({name: myShip, location: location, updatedAt: updatedAtDate.toISOString(), status: 'green'}, true);     
-      
-      setInitialized(true)
 
     }
 
@@ -475,6 +467,17 @@ function App() {
 
     }
 
+    if(map && ships && myShip && location && selectedShip && !timeout && initialized) {
+
+      const updatedAtDate = new Date();
+
+      updateShip({name: myShip, location: location, updatedAt: updatedAtDate.toISOString(), status: 'green'}, true);     
+      
+      setInitialized(false)
+
+    }
+
+
     if(ships && map && updatedShip) {
 
       if(updatedShip['name'] !== myShip) {
@@ -511,7 +514,7 @@ function App() {
 
     }
 
-  }, [location, map, ships, myShip, selectedShip, dragged, loaded, updatedShip, createdShip, deletedShip, timeout]);
+  }, [location, map, ships, myShip, selectedShip, dragged, loaded, updatedShip, createdShip, deletedShip, timeout, initialized]);
 
   return (
     <div className="App">
