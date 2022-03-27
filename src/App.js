@@ -40,13 +40,13 @@ function App() {
 
       var status = 'green'
 
-      if(seconds > 60) {
+      if(seconds > 10) {
 
         status = 'yellow'
 
       }
 
-      if(seconds > 60 * 60) {
+      if(seconds > 60) {
 
         status = 'red'
 
@@ -229,7 +229,7 @@ function App() {
   
       if (shipIndex !== -1) {
   
-        if(ships[shipIndex].location !== pShip.location || (pHard && pShip.status != ships[shipIndex].status)) {
+        if(ships[shipIndex].location !== pShip.location || (pHard && pShip.status !== ships[shipIndex].status)) {
           
           // console.log('Updating Ship: ' + pShip.name + ' Location: ' + pShip.location + ' Status: ' + pShip.status);
   
@@ -368,13 +368,13 @@ function App() {
 
         var status = 'green'
   
-        if(seconds > 60) {
+        if(seconds > 10) {
   
           status = 'yellow'
   
         }
   
-        if(seconds > 60 * 60) {
+        if(seconds > 60) {
   
           status = 'red'
   
