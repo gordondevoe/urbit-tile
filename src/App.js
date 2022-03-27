@@ -23,6 +23,7 @@ function App() {
   const [selectedShip, setSelectedShip] = useState(null);
   const [dragged, setDragged] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  const [initialized, setInitialized] = useState(false);
   const [timeout, setTimeout] = useState(false);
   const [updatedShip, setUpdatedShip] = useState(null);
   const [createdShip, setCreatedShip] = useState(null);
@@ -228,7 +229,7 @@ function App() {
       const shipIndex = ships.findIndex((ship => ship.name === pShip.name));
   
       if (shipIndex !== -1) {
-  
+
         if(ships[shipIndex].location !== pShip.location || (pHard && pShip.status !== ships[shipIndex].status)) {
           
           // console.log('Updating Ship: ' + pShip.name + ' Location: ' + pShip.location + ' Status: ' + pShip.status);
@@ -346,15 +347,19 @@ function App() {
 
     if(map && ships && myShip && location && selectedShip && !timeout) {
 
-      const shipIndex = ships.findIndex((ship => ship.name === myShip));
-  
-      if(shipIndex !== -1) {
+      const updatedAtDate = new Date();
 
-        var updatedAtDate = new Date();
+      updateShip({name: myShip, location: location, updatedAt: updatedAtDate.toISOString(), status: 'green'}, false);       
 
-        updateShip({name: myShip, location: location, updatedAt: updatedAtDate.toISOString(), status: 'green'}, false); 
+    }
+
+    if(map && ships && myShip && location && selectedShip && !timeout && !initialized) {
+
+      const updatedAtDate = new Date();
+
+      updateShip({name: myShip, location: location, updatedAt: updatedAtDate.toISOString(), status: 'green'}, true);     
       
-      }
+      setInitialized(true)
 
     }
 
@@ -390,9 +395,7 @@ function App() {
 
     }
 
-    if(map && ships && loaded) {
-
-      // setTimeout(true);   
+    if(map && ships && loaded) {      
 
       setInterval(() => {
 
