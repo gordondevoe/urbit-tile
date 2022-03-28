@@ -124,53 +124,60 @@ function App() {
 
   useEffect(() => {
 
-    if(myShip) {
+    try {
 
-      function connect() {
+      if(myShip) {
 
-        var watchID;
+        function connect() {
 
-        const options = {
-          enableHighAccuracy: true,
-          timeout: 5000,
-          maximumAge: 0
-        };
-      
-        function success(position) {
+          var watchID;
 
-          clearTimeout(location_timeout);
+          const options = {
+            enableHighAccuracy: true,
+            timeout: 5000,
+            maximumAge: 0
+          };
+        
+          function success(position) {
 
-          const coordinates = position.coords;
+            clearTimeout(location_timeout);
 
-          setLocation(`${coordinates.latitude},${coordinates.longitude}`);
+            const coordinates = position.coords;
 
-        }
-
-        function error(err) {
-
-          if(navigator.geolocation) {
-
-            navigator.geolocation.clearWatch(watchID);
+            setLocation(`${coordinates.latitude},${coordinates.longitude}`);
 
           }
 
-          connect();
+          function error(err) {
 
-        }
+            if(navigator.geolocation) {
 
-       var location_timeout = setTimeout(() => {
+              navigator.geolocation.clearWatch(watchID);
 
-          if(navigator.geolocation && myShip) {
+            }
 
-            watchID = navigator.geolocation.watchPosition(success, error, options);
+            connect();
 
           }
 
-        }, 1000);
+        var location_timeout = setTimeout(() => {
+
+            if(navigator.geolocation && myShip) {
+
+              watchID = navigator.geolocation.watchPosition(success, error, options);
+
+            }
+
+          }, 1000);
+
+        }
+
+        connect();    
 
       }
 
-      connect();    
+    }
+    catch {
 
     }
 
@@ -409,9 +416,13 @@ function App() {
       
             error: error => {
 
-              if(error.errorMessage.includes('Socket')) {
+              if(error.errorMessage) { 
 
-                setTimeout(() => (connectUpdatedShip()), 1000);
+                if(error.errorMessage.includes('Socket')) {
+
+                  setTimeout(() => (connectUpdatedShip()), 1000);
+
+                }
 
               }
 
@@ -435,9 +446,13 @@ function App() {
       
             error: error => {
 
-              if(error.errorMessage.includes('Socket')) {
+              if(error.errorMessage) { 
 
-                setTimeout(() => (connectCreatedShip()), 1000);
+                if(error.errorMessage.includes('Socket')) {
+
+                  setTimeout(() => (connectCreatedShip()), 1000);
+
+                }
 
               }
 
@@ -462,9 +477,13 @@ function App() {
       
             error: error => {
 
-              if(error.errorMessage.includes('Socket')) {
+              if(error.errorMessage) { 
 
-                setTimeout(() => (connectDeletedShip()), 1000);
+                if(error.errorMessage.includes('Socket')) {
+
+                  setTimeout(() => (connectDeletedShip()), 1000);
+
+                }
 
               }
 
@@ -550,7 +569,7 @@ function App() {
     
     }
     catch {
-      
+
     }
 
   }, [location, map, ships, myShip, selectedShip, dragged, loaded, updatedShip, createdShip, deletedShip, timeout]);
