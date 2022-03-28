@@ -407,7 +407,7 @@ function App() {
     
           error: error => {
 
-            setTimeout(connectUpdatedShip, 2000);
+            setTimeout(connectUpdatedShip, 1000);
 
           }          
     
@@ -429,7 +429,7 @@ function App() {
     
           error: error => {
 
-            setTimeout(connectCreatedShip, 2000);
+            setTimeout(connectCreatedShip, 1000);
 
           }      
     
@@ -452,7 +452,7 @@ function App() {
     
           error: error => {
 
-            setTimeout(connectDeletedShip, 5000);
+            setTimeout(connectDeletedShip, 1000);
 
           } 
     
