@@ -577,8 +577,8 @@ function App() {
   return (
     <div className="App">
       <div className="App-body">
-        {!myShip && <p className="App-pulse">Connecting your Urbit ship with the <a className="App-link" target="_blank" rel="noreferrer noopener" href="https://chrome.google.com/webstore/detail/urbit-visor/oadimaacghcacmfipakhadejgalcaepg">Urbit Visor</a> web extension...</p>}
-        {myShip && !location && <p className="App-pulse"><span className="App-link">~{myShip}</span> Please share your location...</p>}
+        {!myShip && <p style={{marginBottom: 0}} className="App-pulse">Connecting your Urbit ship with the <a className="App-link" target="_blank" rel="noreferrer noopener" href="https://chrome.google.com/webstore/detail/urbit-visor/oadimaacghcacmfipakhadejgalcaepg">Urbit Visor</a> web extension...</p>}
+        {myShip && !location && <p style={{marginBottom: 0}}  className="App-pulse"><span className="App-link">~{myShip}</span> Please share your location...</p>}
         {myShip && location && <p style={{marginBottom: 0}} >Urbit Tile is under <a className="App-link" target="_blank" rel="noreferrer noopener" href="https://github.com/gordondevoe/urbit-tile">Development</a>.</p> }
         <p className="App-logo"><a href="https://tile.computer"><img src={logo} alt="urbit-tile-logo"/></a></p> 
         {selectedShip && ships && <table style={{marginBottom: '1em'}} className="App-pulse"><tbody><tr style={{cursor: 'pointer'}} onClick={() => {const shipIndex = ships.findIndex((ship => ship.name === selectedShip)); if(shipIndex !== -1) { map.setView(new L.LatLng(ships[shipIndex].location.split(",")[0], ships[shipIndex].location.split(",")[1]), 18); setSelectedShip(ships[shipIndex].name); setDragged(false); } }}><td>
