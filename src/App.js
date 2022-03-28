@@ -40,13 +40,13 @@ function App() {
 
       var status = 'green'
 
-      if(seconds > 60) {
+      if(seconds > 60 * 60) {
 
         status = 'yellow'
 
       }
 
-      if(seconds > 60 * 60) {
+      if(seconds > 60 * 60 * 24) {
 
         status = 'red'
 
@@ -371,13 +371,13 @@ function App() {
 
           var status = 'green'
     
-          if(seconds > 60) {
-    
+          if(seconds > 60 * 60) {
+
             status = 'yellow'
     
           }
     
-          if(seconds > 60 * 60) {
+          if(seconds > 60 * 60 * 24) {
     
             status = 'red'
     
