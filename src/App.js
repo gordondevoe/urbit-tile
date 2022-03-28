@@ -179,373 +179,378 @@ function App() {
 
   useEffect(() => {
 
-    async function deleteAnyShip(pShipName) {
+    try {
 
-      const shipIndex = ships.findIndex((ship => ship.name === pShipName));
-  
-      if (shipIndex !== -1) {
-  
-        // console.log('Deleting Ship: ' + pShipName);
-  
-        const tempShips = ships.filter(ship => ship.name !== pShipName);
-  
-        map.removeLayer(ships[shipIndex].marker);
-  
-        setShips(tempShips);  
-  
-        API.graphql({ query: deleteShipMutation, variables: { input: { id: ships[shipIndex].id } }})        
-      
-      }
-  
-    }  
+      async function deleteAnyShip(pShipName) {
 
-    async function deleteShip(pShipName) {
-
-      const shipIndex = ships.findIndex((ship => ship.name === pShipName));
-  
-      if (shipIndex !== -1) {
-  
-        // console.log('Deleting Ship: ' + pShipName);
-  
-        const tempShips = ships.filter(ship => ship.name !== pShipName);
-  
-        map.removeLayer(ships[shipIndex].marker);
-  
-        setShips(tempShips);  
-
-        if(pShipName === myShip) {
-  
-          API.graphql({ query: deleteShipMutation, variables: { input: { id: ships[shipIndex].id } }})
-  
-        }
-      
-      }
-  
-    }  
-  
-    async function updateShip(pShip, pForce) {
+        const shipIndex = ships.findIndex((ship => ship.name === pShipName));
     
-      const shipIndex = ships.findIndex((ship => ship.name === pShip.name));
-  
-      if (shipIndex !== -1) {
-  
-        if(ships[shipIndex].location !== pShip.location || pForce) {
+        if (shipIndex !== -1) {
+    
+          // console.log('Deleting Ship: ' + pShipName);
+    
+          const tempShips = ships.filter(ship => ship.name !== pShipName);
+    
+          map.removeLayer(ships[shipIndex].marker);
+    
+          setShips(tempShips);  
+    
+          API.graphql({ query: deleteShipMutation, variables: { input: { id: ships[shipIndex].id } }})        
+        
+        }
+    
+      }  
+
+      async function deleteShip(pShipName) {
+
+        const shipIndex = ships.findIndex((ship => ship.name === pShipName));
+    
+        if (shipIndex !== -1) {
+    
+          // console.log('Deleting Ship: ' + pShipName);
+    
+          const tempShips = ships.filter(ship => ship.name !== pShipName);
+    
+          map.removeLayer(ships[shipIndex].marker);
+    
+          setShips(tempShips);  
+
+          if(pShipName === myShip) {
+    
+            API.graphql({ query: deleteShipMutation, variables: { input: { id: ships[shipIndex].id } }})
+    
+          }
+        
+        }
+    
+      }  
+    
+      async function updateShip(pShip, pForce) {
+      
+        const shipIndex = ships.findIndex((ship => ship.name === pShip.name));
+    
+        if (shipIndex !== -1) {
+    
+          if(ships[shipIndex].location !== pShip.location || pForce) {
+            
+            // console.log('Updating Ship: ' + pShip.name + ' Location: ' + pShip.location + ' Status: ' + pShip.status);
+    
+            var tempShip = {id: ships[shipIndex].id, name: ships[shipIndex].name, location: pShip.location, status: pShip.status, updatedAt: pShip.updatedAt};
+    
+            const splitLocation = pShip.location.split(",");
+    
+            const marker = L.marker([splitLocation[0], splitLocation[1]],         
+              {title: '~' + ships[shipIndex].name, icon: new L.DivIcon({
+                iconSize: [50, 50],
+                html:      '<div>' + sigil({
+                  patp: '~' + ships[shipIndex].name,
+                  renderer: stringRenderer,
+                  size: 50,
+                  colors: ['black', pShip.status],
+                }) + '</div>'
+              })
+            });
+    
+            marker.on('click', () => {
+    
+              setSelectedShip(pShip.name);
+    
+              map.setView(new L.LatLng(pShip.location.split(",")[0], pShip.location.split(",")[1]), 18);
+              
+              setDragged(false);
+    
+            });
           
-          // console.log('Updating Ship: ' + pShip.name + ' Location: ' + pShip.location + ' Status: ' + pShip.status);
-  
-          var tempShip = {id: ships[shipIndex].id, name: ships[shipIndex].name, location: pShip.location, status: pShip.status, updatedAt: pShip.updatedAt};
-  
+            tempShip.marker = marker;
+    
+            map.removeLayer(ships[shipIndex].marker);
+    
+            map.addLayer(tempShip.marker);
+
+            var tempShips = [...ships];
+
+            tempShips[shipIndex] = tempShip;
+    
+            setShips(tempShips);
+
+            if(pShip.name === myShip && !pForce) {
+    
+              await API.graphql({ query: updateShipMutation, variables: { input: { id: tempShip.id, name: tempShip.name, location: tempShip.location } } });
+    
+            }
+    
+          }
+    
+        }
+    
+      }
+    
+      async function createShip(pShip) {
+    
+        const shipIndex = ships.findIndex((ship => ship.name === pShip.name));
+    
+        if(shipIndex === -1) {
+    
+          // console.log('Creating Ship: Name: ' + pShip.name + ' Location: ' + pShip.location);
+    
+          if(pShip.name === myShip) {
+    
+            const createResults = await API.graphql({ query: createShipMutation, variables: { input: {name: myShip, location: location} } });
+            
+            pShip.id = createResults.data.createShip.id;
+
+            pShip.updatedAt = createResults.data.createShip.updatedAt;
+    
+          }
+    
           const splitLocation = pShip.location.split(",");
-  
+    
           const marker = L.marker([splitLocation[0], splitLocation[1]],         
-            {title: '~' + ships[shipIndex].name, icon: new L.DivIcon({
-              iconSize: [50, 50],
-              html:      '<div>' + sigil({
-                patp: '~' + ships[shipIndex].name,
-                renderer: stringRenderer,
-                size: 50,
-                colors: ['black', pShip.status],
-              }) + '</div>'
+            {title: '~' + pShip.name, icon: new L.DivIcon({
+            iconSize: [50, 50],
+            html:      '<div>' + sigil({
+              patp: '~' + pShip.name,
+              renderer: stringRenderer,
+              size: 50,
+              colors: ['black', 'green'],
+            }) + '</div>'
             })
           });
-  
-          marker.on('click', () => {
-  
+    
+          marker.on('click', function (e) {
+    
             setSelectedShip(pShip.name);
-  
             map.setView(new L.LatLng(pShip.location.split(",")[0], pShip.location.split(",")[1]), 18);
-            
             setDragged(false);
-  
+    
           });
-        
-          tempShip.marker = marker;
-  
-          map.removeLayer(ships[shipIndex].marker);
-  
-          map.addLayer(tempShip.marker);
-
-          var tempShips = [...ships];
-
-          tempShips[shipIndex] = tempShip;
-  
-          setShips(tempShips);
-
-          if(pShip.name === myShip && !pForce) {
-  
-            await API.graphql({ query: updateShipMutation, variables: { input: { id: tempShip.id, name: tempShip.name, location: tempShip.location } } });
-  
-          }
-  
+    
+          map.addLayer(marker);
+    
+          setShips([ ...ships, {id: pShip.id, name: pShip.name, location: pShip.location, marker: marker, status: 'green', updatedAt: pShip.updatedAt } ]);
+    
         }
-  
+    
       }
-  
-    }
-  
-    async function createShip(pShip) {
-  
-      const shipIndex = ships.findIndex((ship => ship.name === pShip.name));
-  
-      if(shipIndex === -1) {
-  
-        // console.log('Creating Ship: Name: ' + pShip.name + ' Location: ' + pShip.location);
-  
-        if(pShip.name === myShip) {
-  
-          const createResults = await API.graphql({ query: createShipMutation, variables: { input: {name: myShip, location: location} } });
+
+      if(map && ships) {
+
+        // deleteAnyShip('nopsed-nomber');
+
+        // return;
+      }
+
+      if(map && myShip && location && ships) {
+
+        createShip({name: myShip, location: location});
+
+      }
+
+      if(map && ships && myShip && location && selectedShip && !timeout) {
+
+        var updatedAtDate = new Date();
+
+        updateShip({name: myShip, location: location, updatedAt: updatedAtDate.toISOString(), status: 'green'});       
+
+      }
+
+      if(map && ships && timeout && myShip && selectedShip && timeout) {
+
+        ships.map(ship => {
+
+          const date1 = new Date(ship.updatedAt);
+
+          var seconds = Math.floor((Date.now() - date1) / 1000);
+
+          var status = 'green'
+    
+          if(seconds > 60) {
+    
+            status = 'yellow'
+    
+          }
+    
+          if(seconds > 60 * 60) {
+    
+            status = 'red'
+    
+          }
+
+          if(status !== ship.status) {
+
+            updateShip({name: ship.name, location: ship.location, updatedAt: ship.updatedAt, status: status}, true);
+
+          }
+
+          return {...ship, status: status}
+
+        });
+
+        setTimeout(false);
+
+      }
+
+      if(map && ships && loaded) {      
+
+        setInterval(() => {
+
+            setTimeout(true);        
+
+        }, 5000);
+
+        function connectUpdatedShip() {
+
+          API.graphql(graphqlOperation(onUpdateShip)).subscribe({
+
+            next: ({ provider, value }) => 
+            {
+              setUpdatedShip(value['data']['onUpdateShip']);  
+            },
+      
+            error: error => {
+
+              if(error.errorMessage.includes('Socket')) {
+
+                setTimeout(() => (connectUpdatedShip()), 1000);
+
+              }
+
+            }          
+      
+          });
+
+        }
+
+        connectUpdatedShip();
+
+        function connectCreatedShip() {
           
-          pShip.id = createResults.data.createShip.id;
+          API.graphql(graphqlOperation(onCreateShip)).subscribe({
 
-          pShip.updatedAt = createResults.data.createShip.updatedAt;
-  
-        }
-  
-        const splitLocation = pShip.location.split(",");
-  
-        const marker = L.marker([splitLocation[0], splitLocation[1]],         
-          {title: '~' + pShip.name, icon: new L.DivIcon({
-          iconSize: [50, 50],
-          html:      '<div>' + sigil({
-            patp: '~' + pShip.name,
-            renderer: stringRenderer,
-            size: 50,
-            colors: ['black', 'green'],
-           }) + '</div>'
-          })
-        });
-  
-        marker.on('click', function (e) {
-  
-          setSelectedShip(pShip.name);
-          map.setView(new L.LatLng(pShip.location.split(",")[0], pShip.location.split(",")[1]), 18);
-          setDragged(false);
-  
-        });
-  
-        map.addLayer(marker);
-  
-        setShips([ ...ships, {id: pShip.id, name: pShip.name, location: pShip.location, marker: marker, status: 'green', updatedAt: pShip.updatedAt } ]);
-  
-      }
-  
-    }
+            next: ({ provider, value }) => 
+            {
+              setCreatedShip(value['data']['onCreateShip']);           
+      
+            },
+      
+            error: error => {
 
-    if(map && ships) {
+              if(error.errorMessage.includes('Socket')) {
 
-      // deleteAnyShip('nopsed-nomber');
+                setTimeout(() => (connectCreatedShip()), 1000);
 
-      // return;
-    }
+              }
 
-    if(map && myShip && location && ships) {
-
-      createShip({name: myShip, location: location});
-
-    }
-
-    if(map && ships && myShip && location && selectedShip && !timeout) {
-
-      var updatedAtDate = new Date();
-
-      updateShip({name: myShip, location: location, updatedAt: updatedAtDate.toISOString(), status: 'green'});       
-
-    }
-
-    if(map && ships && timeout && myShip && selectedShip && timeout) {
-
-      ships.map(ship => {
-
-        const date1 = new Date(ship.updatedAt);
-
-        var seconds = Math.floor((Date.now() - date1) / 1000);
-
-        var status = 'green'
-  
-        if(seconds > 60) {
-  
-          status = 'yellow'
-  
-        }
-  
-        if(seconds > 60 * 60) {
-  
-          status = 'red'
-  
-        }
-
-        if(status !== ship.status) {
-
-          updateShip({name: ship.name, location: ship.location, updatedAt: ship.updatedAt, status: status}, true);
+            }      
+      
+          });
 
         }
 
-        return {...ship, status: status}
+        connectCreatedShip();
 
-      });
+        function connectDeletedShip() {
 
-      setTimeout(false);
+          API.graphql(graphqlOperation(onDeleteShip)).subscribe({
 
-    }
+            next: ({ provider, value }) => 
+            {
 
-    if(map && ships && loaded) {      
+              setDeletedShip(value['data']['onDeleteShip']);
 
-      setInterval(() => {
+            },
+      
+            error: error => {
 
-          setTimeout(true);        
+              if(error.errorMessage.includes('Socket')) {
 
-      }, 5000);
+                setTimeout(() => (connectDeletedShip()), 1000);
 
-      function connectUpdatedShip() {
+              }
 
-        API.graphql(graphqlOperation(onUpdateShip)).subscribe({
+            } 
+      
+          });
 
-          next: ({ provider, value }) => 
-          {
-            setUpdatedShip(value['data']['onUpdateShip']);  
-          },
-    
-          error: error => {
+        }
 
-            if(error.errorMessage.includes('Socket')) {
+        connectDeletedShip();
 
-              setTimeout(() => (connectUpdatedShip()), 1000);
-
-            }
-
-          }          
-    
-        });
+        setLoaded(false);
 
       }
 
-      connectUpdatedShip();
+      if(map && selectedShip && myShip && ships) {   
 
-      function connectCreatedShip() {
-        
-        API.graphql(graphqlOperation(onCreateShip)).subscribe({
+        if(!dragged) {
 
-          next: ({ provider, value }) => 
-          {
-            setCreatedShip(value['data']['onCreateShip']);           
-    
-          },
-    
-          error: error => {
+          const shipIndex = ships.findIndex((ship => ship.name === selectedShip));
 
-            if(error.errorMessage.includes('Socket')) {
+          if(shipIndex !== -1) {
 
-              setTimeout(() => (connectCreatedShip()), 1000);
+            if(ships[shipIndex].name === myShip) {
+
+              if(location) {
+
+                map.setView(new L.LatLng(location.split(',')[0], location.split(',')[1]), 18);
+
+              }
 
             }
 
-            console.warn(error);
+            else {
 
-          }      
-    
-        });
-
-      }
-
-      connectCreatedShip();
-
-      function connectDeletedShip() {
-
-        API.graphql(graphqlOperation(onDeleteShip)).subscribe({
-
-          next: ({ provider, value }) => 
-          {
-
-            setDeletedShip(value['data']['onDeleteShip']);
-
-          },
-    
-          error: error => {
-
-            if(error.errorMessage.includes('Socket')) {
-
-              setTimeout(() => (connectDeletedShip()), 1000);
+              map.setView(new L.LatLng(ships[shipIndex].location.split(',')[0], ships[shipIndex].location.split(',')[1]), 18);
 
             }
 
-          } 
-    
-        });
-
-      }
-
-      connectDeletedShip();
-
-      setLoaded(false);
-
-    }
-
-    if(map && selectedShip && myShip && ships) {   
-
-      if(!dragged) {
-
-        const shipIndex = ships.findIndex((ship => ship.name === selectedShip));
-
-        if(shipIndex !== -1) {
-
-          if(ships[shipIndex].name === myShip) {
-
-            if(location) {
-
-              map.setView(new L.LatLng(location.split(',')[0], location.split(',')[1]), 18);
-
-            }
+            setDragged(false);
 
           }
 
-          else {
-
-            map.setView(new L.LatLng(ships[shipIndex].location.split(',')[0], ships[shipIndex].location.split(',')[1]), 18);
-
-          }
-
-          setDragged(false);
-
         }
 
       }
 
-    }
+      if(ships && map && updatedShip) {
 
-    if(ships && map && updatedShip) {
+        if(updatedShip['name'] !== myShip) {
+      
+          updateShip({name: updatedShip['name'], location: updatedShip['location'], updatedAt: updatedShip['updatedAt'], status: 'green'});
 
-      if(updatedShip['name'] !== myShip) {
-    
-        updateShip({name: updatedShip['name'], location: updatedShip['location'], updatedAt: updatedShip['updatedAt'], status: 'green'});
+        }
 
-      }
-
-      setUpdatedShip(null);
-
-    }
-
-    if(ships && map && createdShip) {
-
-      if(createdShip['name'] !== myShip) {
-    
-        createShip({id: createdShip['id'], name: createdShip['name'], location: createdShip['location'], updatedAt: createdShip['updatedAt']});
+        setUpdatedShip(null);
 
       }
 
-      setCreatedShip(null);
+      if(ships && map && createdShip) {
 
-    }
+        if(createdShip['name'] !== myShip) {
+      
+          createShip({id: createdShip['id'], name: createdShip['name'], location: createdShip['location'], updatedAt: createdShip['updatedAt']});
 
-    if(ships && map && deletedShip) {
+        }
 
-      if(createdShip['name'] !== myShip) {
-    
-        deleteShip(deletedShip['name']);
+        setCreatedShip(null);
 
       }
 
-      setDeletedShip(null);
+      if(ships && map && deletedShip) {
 
+        if(createdShip['name'] !== myShip) {
+      
+          deleteShip(deletedShip['name']);
+
+        }
+
+        setDeletedShip(null);
+
+      }
+    
+    }
+    catch {
+      
     }
 
   }, [location, map, ships, myShip, selectedShip, dragged, loaded, updatedShip, createdShip, deletedShip, timeout]);
