@@ -398,7 +398,7 @@ function App() {
 
       function connectUpdatedShip() {
 
-        API.graphql(graphqlOperation(onUpdateShip)).subscribe({
+        const updateShipSubscription = API.graphql(graphqlOperation(onUpdateShip)).subscribe({
 
           next: ({ provider, value }) => 
           {
@@ -407,6 +407,7 @@ function App() {
     
           error: error => {
 
+            updateShipSubscription.unsubscribe();
             setTimeout(connectUpdatedShip, 1000);
 
           }          
@@ -419,7 +420,7 @@ function App() {
 
       function connectCreatedShip() {
         
-          API.graphql(graphqlOperation(onCreateShip)).subscribe({
+        const createShipSubscription = API.graphql(graphqlOperation(onCreateShip)).subscribe({
 
           next: ({ provider, value }) => 
           {
@@ -429,6 +430,7 @@ function App() {
     
           error: error => {
 
+            createShipSubscription.unsubscribe();
             setTimeout(connectCreatedShip, 1000);
 
           }      
@@ -441,7 +443,7 @@ function App() {
 
       function connectDeletedShip() {
 
-        API.graphql(graphqlOperation(onDeleteShip)).subscribe({
+        const deleteShipSubscription = API.graphql(graphqlOperation(onDeleteShip)).subscribe({
 
           next: ({ provider, value }) => 
           {
@@ -452,7 +454,8 @@ function App() {
     
           error: error => {
 
-            setTimeout(connectDeletedShip, 1000);
+            deleteShipSubscription.unsubscribe();
+            setTimeout(connectDeletedShip, 5000);
 
           } 
     
