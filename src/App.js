@@ -396,8 +396,6 @@ function App() {
 
       }, 5000);
 
-
-
       function connectUpdatedShip() {
 
         API.graphql(graphqlOperation(onUpdateShip)).subscribe({
@@ -409,7 +407,7 @@ function App() {
     
           error: error => {
 
-            setTimeout(connectUpdatedShip(), 2000);
+            setTimeout(connectUpdatedShip, 2000);
 
           }          
     
@@ -431,7 +429,7 @@ function App() {
     
           error: error => {
 
-            setTimeout(connectCreatedShip(), 2000);
+            setTimeout(connectCreatedShip, 2000);
 
           }      
     
@@ -454,7 +452,7 @@ function App() {
     
           error: error => {
 
-            setTimeout(connectDeletedShip(), 2000);
+            setTimeout(connectDeletedShip, 5000);
 
           } 
     
