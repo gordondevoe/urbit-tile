@@ -48,7 +48,7 @@ function App() {
 
       if(seconds > 60 * 60 * 24) {
 
-        status = 'red'
+        status = 'white'
 
       }
 
@@ -379,7 +379,7 @@ function App() {
     
           if(seconds > 60 * 60 * 24) {
     
-            status = 'red'
+            status = 'white'
     
           }
 
@@ -440,6 +440,7 @@ function App() {
 
             next: ({ provider, value }) => 
             {
+              
               setCreatedShip(value['data']['onCreateShip']);           
       
             },
