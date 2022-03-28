@@ -396,41 +396,73 @@ function App() {
 
       }, 5000);
 
-      API.graphql(graphqlOperation(onUpdateShip)).subscribe({
 
-        next: ({ provider, value }) => 
-        {
-          setUpdatedShip(value['data']['onUpdateShip']);  
-        },
-  
-        error: error => console.warn(error)
-  
-      });
 
-      API.graphql(graphqlOperation(onCreateShip)).subscribe({
+      function connectUpdatedShip() {
 
-        next: ({ provider, value }) => 
-        {
-          setCreatedShip(value['data']['onCreateShip']);           
-  
-        },
-  
-        error: error => console.warn(error)
-  
-      });
+        API.graphql(graphqlOperation(onUpdateShip)).subscribe({
 
-      API.graphql(graphqlOperation(onDeleteShip)).subscribe({
+          next: ({ provider, value }) => 
+          {
+            setUpdatedShip(value['data']['onUpdateShip']);  
+          },
+    
+          error: error => {
 
-        next: ({ provider, value }) => 
-        {
+            setTimeout(connectUpdatedShip(), 2000);
 
-          setDeletedShip(value['data']['onDeleteShip']);
+          }          
+    
+        });
 
-        },
-  
-        error: error => console.warn(error)
-  
-      });
+      }
+
+      connectUpdatedShip();
+
+      function connectCreatedShip() {
+        
+          API.graphql(graphqlOperation(onCreateShip)).subscribe({
+
+          next: ({ provider, value }) => 
+          {
+            setCreatedShip(value['data']['onCreateShip']);           
+    
+          },
+    
+          error: error => {
+
+            setTimeout(connectCreatedShip(), 2000);
+
+          }      
+    
+        });
+
+      }
+
+      connectCreatedShip();
+
+      function connectDeletedShip() {
+
+        API.graphql(graphqlOperation(onDeleteShip)).subscribe({
+
+          next: ({ provider, value }) => 
+          {
+
+            setDeletedShip(value['data']['onDeleteShip']);
+
+          },
+    
+          error: error => {
+
+            setTimeout(connectDeletedShip(), 2000);
+
+          } 
+    
+        });
+
+      }
+
+      connectDeletedShip();
 
       setLoaded(false);
 
