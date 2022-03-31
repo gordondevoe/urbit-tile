@@ -30,7 +30,7 @@ function App() {
   
   async function fetchShips(pLoadedMap) {
 
-    const apiData = await API.graphql({ query: listShips });
+    const apiData = await API.graphql({ query: listShips, authToken: "readonly" });
 
     const tempShips = apiData.data.listShips.items.map(ship => {
 
@@ -188,25 +188,19 @@ function App() {
 
     try {
 
-      async function deleteAnyShip(pShipName) {
+      async function deleteAllShips() {
 
-        const shipIndex = ships.findIndex((ship => ship.name === pShipName));
+        const apiData = await API.graphql({ query: listShips, authToken: "readonly" });
     
-        if (shipIndex !== -1) {
+        const tempShips = apiData.data.listShips.items.map(ship => {
     
-          // console.log('Deleting Ship: ' + pShipName);
+          console.log('deleting')
     
-          const tempShips = ships.filter(ship => ship.name !== pShipName);
+          API.graphql({ query: deleteShipMutation, variables: { input: { id: ship.id } }, authToken: "readonly"})    
     
-          map.removeLayer(ships[shipIndex].marker);
+        });
     
-          setShips(tempShips);  
-    
-          API.graphql({ query: deleteShipMutation, variables: { input: { id: ships[shipIndex].id } }})        
-        
-        }
-    
-      }  
+      }
 
       async function deleteShip(pShipName) {
 
@@ -224,7 +218,7 @@ function App() {
 
           if(pShipName === myShip) {
     
-            API.graphql({ query: deleteShipMutation, variables: { input: { id: ships[shipIndex].id } }})
+            API.graphql({ query: deleteShipMutation, variables: { input: { id: ships[shipIndex].id } }, authToken: "readonly"})
     
           }
         
@@ -300,15 +294,15 @@ function App() {
     
           // console.log('Creating Ship: Name: ' + pShip.name + ' Location: ' + pShip.location);
     
-          if(pShip.name === myShip) {
+          //if(pShip.name === myShip) {
     
-            const createResults = await API.graphql({ query: createShipMutation, variables: { input: {name: myShip, location: location} } });
+            const createResults = await API.graphql({ query: createShipMutation, variables: { input: {name: pShip.name, location: pShip.location} }, authToken: "readonly" });
             
             pShip.id = createResults.data.createShip.id;
 
             pShip.updatedAt = createResults.data.createShip.updatedAt;
     
-          }
+          //}
     
           const splitLocation = pShip.location.split(",");
     
@@ -342,9 +336,10 @@ function App() {
 
       if(map && ships) {
 
-        // deleteAnyShip('nopsed-nomber');
+        //deleteAllShips();
 
-        // return;
+        //return;
+
       }
 
       if(map && myShip && location && ships) {
