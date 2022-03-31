@@ -24,13 +24,14 @@ function App() {
   const [dragged, setDragged] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const [timeout, setTimeout] = useState(false);
+  const [authToken, setAuthToken] = useState("readonly");
   const [updatedShip, setUpdatedShip] = useState(null);
   const [createdShip, setCreatedShip] = useState(null);
   const [deletedShip, setDeletedShip] = useState(null);
   
   async function fetchShips(pLoadedMap) {
 
-    const apiData = await API.graphql({ query: listShips, authToken: "readonly" });
+    const apiData = await API.graphql({ query: listShips, authToken: authToken });
 
     const tempShips = apiData.data.listShips.items.map(ship => {
 
@@ -190,13 +191,15 @@ function App() {
 
       async function deleteAllShips() {
 
-        const apiData = await API.graphql({ query: listShips, authToken: "readonly" });
+        const apiData = await API.graphql({ query: listShips, authToken: authToken });
+
+        console.log('Deleting sll ships...');
     
-        const tempShips = apiData.data.listShips.items.map(ship => {
+        apiData.data.listShips.items.map(ship => {
     
-          console.log('deleting')
-    
-          API.graphql({ query: deleteShipMutation, variables: { input: { id: ship.id } }, authToken: "readonly"})    
+          API.graphql({ query: deleteShipMutation, variables: { input: { id: ship.id } }, authToken: authToken})    
+
+          return ship;
     
         });
     
@@ -218,7 +221,7 @@ function App() {
 
           if(pShipName === myShip) {
     
-            API.graphql({ query: deleteShipMutation, variables: { input: { id: ships[shipIndex].id } }, authToken: "readonly"})
+            API.graphql({ query: deleteShipMutation, variables: { input: { id: ships[shipIndex].id } }, authToken: authToken})
     
           }
         
@@ -294,15 +297,15 @@ function App() {
     
           // console.log('Creating Ship: Name: ' + pShip.name + ' Location: ' + pShip.location);
     
-          //if(pShip.name === myShip) {
+          if(pShip.name === myShip) {
     
-            const createResults = await API.graphql({ query: createShipMutation, variables: { input: {name: pShip.name, location: pShip.location} }, authToken: "readonly" });
+            const createResults = await API.graphql({ query: createShipMutation, variables: { input: {name: pShip.name, location: pShip.location} }, authToken: authToken });
             
             pShip.id = createResults.data.createShip.id;
 
             pShip.updatedAt = createResults.data.createShip.updatedAt;
     
-          //}
+          }
     
           const splitLocation = pShip.location.split(",");
     
@@ -568,7 +571,7 @@ function App() {
 
     }
 
-  }, [location, map, ships, myShip, selectedShip, dragged, loaded, updatedShip, createdShip, deletedShip, timeout]);
+  }, [location, map, ships, myShip, selectedShip, dragged, loaded, updatedShip, createdShip, deletedShip, timeout, authToken]);
 
   return (
     <div className="App">
