@@ -31,13 +31,13 @@ function App() {
   
   async function fetchShips(pLoadedMap) {
 
-    const apiData = await API.graphql({ query: listShips, authToken: authToken });
+    const apiData = await API.graphql({ query: listShips, variables: { input: { shipName: "test" } }, authToken: authToken });
 
     const tempShips = apiData.data.listShips.items.map(ship => {
 
-      const date1 = new Date(ship.updatedAt);
+      const updatedTime = new Date(ship.updatedAt);
 
-      var seconds = Math.floor((Date.now() - date1) / 1000);
+      var seconds = Math.floor((Date.now() - updatedTime) / 1000);
 
       var status = 'green'
 
@@ -103,6 +103,7 @@ function App() {
     urbitVisor.getShip().then((res) => {
     
       setMyShip(res.response);
+      
       setSelectedShip(res.response)
     
     });
@@ -279,7 +280,7 @@ function App() {
 
             if(pShip.name === myShip && !pForce) {
     
-              await API.graphql({ query: updateShipMutation, variables: { input: { id: tempShip.id, name: tempShip.name, location: tempShip.location } } });
+              await API.graphql({ query: updateShipMutation, variables: { input: { id: tempShip.id, name: tempShip.name, location: tempShip.location } }, authToken: authToken });
     
             }
     
@@ -363,9 +364,9 @@ function App() {
 
         ships.map(ship => {
 
-          const date1 = new Date(ship.updatedAt);
+          const updatedTime = new Date(ship.updatedAt);
 
-          var seconds = Math.floor((Date.now() - date1) / 1000);
+          var seconds = Math.floor((Date.now() - updatedTime) / 1000);
 
           var status = 'green'
     
@@ -409,7 +410,9 @@ function App() {
 
             next: ({ provider, value }) => 
             {
+
               setUpdatedShip(value['data']['onUpdateShip']);  
+
             },
       
             error: error => {
@@ -424,7 +427,7 @@ function App() {
 
               }
 
-            }          
+            }       
       
           });
 
@@ -455,7 +458,7 @@ function App() {
 
               }
 
-            }      
+            }
       
           });
 
@@ -486,7 +489,7 @@ function App() {
 
               }
 
-            } 
+            }
       
           });
 
