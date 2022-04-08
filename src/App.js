@@ -7,10 +7,10 @@ import L from "leaflet";
 import { urbitVisor } from "@dcspark/uv-core";
 import Amplify, { API, graphqlOperation } from "aws-amplify";
 import awsconfig from "./aws-exports";
-import { listShips } from "./graphql/queries";
+import { listShips, getShip } from "./graphql/queries";
 import { onUpdateShip, onCreateShip, onDeleteShip } from "./graphql/subscriptions";
-import { createShip as createShipMutation, updateShip as updateShipMutation, deleteShip as deleteShipMutation} from "./graphql/mutations";
-import { sigil, reactRenderer, stringRenderer } from '@tlon/sigil-js'
+import { updateShip as updateShipMutation } from "./graphql/mutations";
+import { sigil, reactRenderer, stringRenderer } from '@tlon/sigil-js';
 
 Amplify.configure(awsconfig);
 
@@ -24,18 +24,19 @@ function App() {
   const [dragged, setDragged] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const [timeout, setTimeout] = useState(false);
-  const [authToken, setAuthToken] = useState("readonly");
+  const [authToken, setAuthToken] = useState("tile");
+  const [authorized, setAuthorized] = useState(false);
   const [updatedShip, setUpdatedShip] = useState(null);
   const [createdShip, setCreatedShip] = useState(null);
   const [deletedShip, setDeletedShip] = useState(null);
   
   async function fetchShips(pLoadedMap) {
 
-    const apiData = await API.graphql({ query: listShips, variables: { input: { shipName: "test" } }, authToken: authToken });
+    const listShipsResult = await API.graphql(graphqlOperation(listShips, {}, authToken));
 
-    const tempShips = apiData.data.listShips.items.map(ship => {
+    const tempShips = listShipsResult.data.listShips.items.map(ship => {
 
-      const updatedTime = new Date(ship.updatedAt);
+      const updatedTime = new Date(ship.updatedAt); 
 
       var seconds = Math.floor((Date.now() - updatedTime) / 1000);
 
@@ -55,7 +56,7 @@ function App() {
 
       const splitLocation = ship.location.split(",");
 
-      const marker = L.marker([splitLocation[0], splitLocation[1]], 
+      const marker = L.marker([splitLocation[0], splitLocation[1]],
         {title: '~' + ship.name, icon: new L.DivIcon({
           iconSize: [50, 50],
           html:      '<div>' + sigil({
@@ -98,15 +99,23 @@ function App() {
 
   }
 
-  function setShipData() {    
+  async function setShipData() {    
     
-    urbitVisor.getShip().then((res) => {
+    const shipResults = await urbitVisor.getShip();
     
-      setMyShip(res.response);
-      
-      setSelectedShip(res.response)
+    setMyShip(shipResults.response);
     
-    });
+    setSelectedShip(shipResults.response);   
+
+    const res = await urbitVisor.authorizeShip('tilsem-mirfer');
+
+    if(res.response) {
+
+      setAuthToken(res.response);
+
+      setAuthorized(true);
+
+    }    
 
   }
 
@@ -120,7 +129,19 @@ function App() {
       shadowUrl: require("leaflet/dist/images/marker-shadow.png"),
     });
 
-    urbitVisor.require(["shipName"], setShipData);
+    urbitVisor.require([ "auth", "shipName"], setShipData);
+
+    /*
+
+    if(window.sessionStorage.getItem("tile-token") !== null && window.sessionStorage.getItem("tile-token") !== 'tile') {
+
+      setAuthToken(window.sessionStorage.getItem("tile-token"));
+
+      setAuthorized(true);
+    
+    }
+
+    */
 
   }, []);
 
@@ -190,22 +211,6 @@ function App() {
 
     try {
 
-      async function deleteAllShips() {
-
-        const apiData = await API.graphql({ query: listShips, authToken: authToken });
-
-        console.log('Deleting sll ships...');
-    
-        apiData.data.listShips.items.map(ship => {
-    
-          API.graphql({ query: deleteShipMutation, variables: { input: { id: ship.id } }, authToken: authToken})    
-
-          return ship;
-    
-        });
-    
-      }
-
       async function deleteShip(pShipName) {
 
         const shipIndex = ships.findIndex((ship => ship.name === pShipName));
@@ -218,17 +223,11 @@ function App() {
     
           map.removeLayer(ships[shipIndex].marker);
     
-          setShips(tempShips);  
-
-          if(pShipName === myShip) {
-    
-            API.graphql({ query: deleteShipMutation, variables: { input: { id: ships[shipIndex].id } }, authToken: authToken})
-    
-          }
+          setShips(tempShips);
         
         }
     
-      }  
+      } 
     
       async function updateShip(pShip, pForce) {
       
@@ -279,8 +278,56 @@ function App() {
             setShips(tempShips);
 
             if(pShip.name === myShip && !pForce) {
-    
-              await API.graphql({ query: updateShipMutation, variables: { input: { id: tempShip.id, name: tempShip.name, location: tempShip.location } }, authToken: authToken });
+
+              if(authToken === 'tile'){
+
+                const res = await urbitVisor.authorizeShip('tilsem-mirfer');
+
+                if(res.response) {
+
+                  try {
+
+                    await API.graphql(graphqlOperation(listShips, { input: { id: tempShip.id, name: tempShip.name, token: res.response }, filter: { id: { eq: tempShip.id }, name: { eq: tempShip.name } } }, authToken) );
+
+                    setAuthorized(true);
+
+                    setAuthToken(res.response);
+
+                    await API.graphql(graphqlOperation(updateShipMutation, { input: { id: tempShip.id, name: tempShip.name, location: tempShip.location } }, res.response) );
+                    
+
+                  }
+                  catch {
+
+                    console.log('Auth failed.');
+
+                  }
+
+                }
+
+              }
+              else {
+              
+                try {
+
+                  await API.graphql(graphqlOperation(updateShipMutation, { input: { id: tempShip.id, name: tempShip.name, location: tempShip.location } }, authToken) );
+                
+                }                
+                catch(error) {
+
+                  const res = await urbitVisor.authorizeShip('tilsem-mirfer');
+
+                  if(res.response) {
+
+                    setAuthorized(true);
+
+                    setAuthToken(res.response);
+
+                  }                 
+
+                }
+
+              }
     
             }
     
@@ -299,12 +346,45 @@ function App() {
           // console.log('Creating Ship: Name: ' + pShip.name + ' Location: ' + pShip.location);
     
           if(pShip.name === myShip) {
-    
-            const createResults = await API.graphql({ query: createShipMutation, variables: { input: {name: pShip.name, location: pShip.location} }, authToken: authToken });
-            
-            pShip.id = createResults.data.createShip.id;
 
-            pShip.updatedAt = createResults.data.createShip.updatedAt;
+            try {
+    
+              const updateShipResults = await API.graphql(graphqlOperation(updateShipMutation, { input: { name: pShip.name, location: pShip.location } }, authToken));
+
+              pShip.id = updateShipResults.data.listShips.items[0].id;
+
+              pShip.updatedAt = updateShipResults.data.listShips.items[0].updatedAt;
+
+            }    
+            catch(error) {
+
+              const listShipsResult = await API.graphql(graphqlOperation(listShips, { filter: { name: { eq: pShip.name } } }, authToken) );
+                               
+              if(listShipsResult.data.listShips.items.length > 0) {
+
+                pShip.id = listShipsResult.data.listShips.items[0].id;
+
+                pShip.updatedAt = listShipsResult.data.listShips.items[0].updatedAt;
+
+              }
+
+              const res = await urbitVisor.authorizeShip('tilsem-mirfer');
+
+              if(res.token) {
+
+                const res = await urbitVisor.authorizeShip('tilsem-mirfer');
+
+                if(res.response) {
+
+                  setAuthorized(true);
+
+                  setAuthToken(res.response);
+
+                }
+
+              }
+
+            }     
     
           }
     
@@ -346,7 +426,7 @@ function App() {
 
       }
 
-      if(map && myShip && location && ships) {
+      if(map && myShip && location && ships && authToken === 'tile') {
 
         createShip({name: myShip, location: location});
 
@@ -400,18 +480,19 @@ function App() {
 
         setInterval(() => {
 
-            setTimeout(true);        
+          setTimeout(true);        
 
         }, 5000);
+        
 
         function connectUpdatedShip() {
 
-          API.graphql(graphqlOperation(onUpdateShip)).subscribe({
+          API.graphql(graphqlOperation(onUpdateShip, {}, 'tile')).subscribe({
 
             next: ({ provider, value }) => 
             {
 
-              setUpdatedShip(value['data']['onUpdateShip']);  
+              setUpdatedShip(value['data']['onUpdateShip']);
 
             },
       
@@ -427,7 +508,7 @@ function App() {
 
               }
 
-            }       
+            }
       
           });
 
@@ -437,7 +518,7 @@ function App() {
 
         function connectCreatedShip() {
           
-          API.graphql(graphqlOperation(onCreateShip)).subscribe({
+          API.graphql(graphqlOperation(onCreateShip, {}, 'tile')).subscribe({
 
             next: ({ provider, value }) => 
             {
@@ -468,7 +549,7 @@ function App() {
 
         function connectDeletedShip() {
 
-          API.graphql(graphqlOperation(onDeleteShip)).subscribe({
+          API.graphql(graphqlOperation(onDeleteShip, {}, 'tile')).subscribe({
 
             next: ({ provider, value }) => 
             {
@@ -579,15 +660,15 @@ function App() {
   return (
     <div className="App">
       <div className="App-body">
-        {!myShip && <p style={{marginBottom: 0}} className="App-pulse">Connecting your Urbit ship with the <a className="App-link" target="_blank" rel="noreferrer noopener" href="https://chrome.google.com/webstore/detail/urbit-visor/oadimaacghcacmfipakhadejgalcaepg">Urbit Visor</a> web extension...</p>}
-        {myShip && !location && <p style={{marginBottom: 0}}  className="App-pulse"><span className="App-link">~{myShip}</span> Please share your location...</p>}
-        {myShip && location && <p style={{marginBottom: 0}} >Urbit Tile is under <a className="App-link" target="_blank" rel="noreferrer noopener" href="https://github.com/gordondevoe/urbit-tile">Development</a>.</p> }
         <p className="App-logo"><a href="https://tile.computer"><img src={logo} alt="urbit-tile-logo"/></a></p> 
-        {selectedShip && ships && <table style={{marginBottom: '1em'}} className="App-pulse"><tbody><tr style={{cursor: 'pointer'}} onClick={() => {const shipIndex = ships.findIndex((ship => ship.name === selectedShip)); if(shipIndex !== -1) { map.setView(new L.LatLng(ships[shipIndex].location.split(",")[0], ships[shipIndex].location.split(",")[1]), 18); setSelectedShip(ships[shipIndex].name); setDragged(false); } }}><td>
-        {sigil({ patp: selectedShip, renderer: reactRenderer, size: 50, colors: ['black', ships[ships.findIndex((ship => ship.name === selectedShip))] && ships[ships.findIndex((ship => ship.name === selectedShip))].status] })}</td><td>&nbsp;~{selectedShip}</td></tr></tbody></table>}
+        {!myShip && <p style={{marginTop: 0}} className="App-pulse">Connecting your Urbit ship with the <a className="App-link" target="_blank" rel="noreferrer noopener" href="https://chrome.google.com/webstore/detail/urbit-visor/oadimaacghcacmfipakhadejgalcaepg">Urbit Visor</a> web extension...</p>}
+        {myShip && !location && <p style={{marginTop: 0}} className="App-pulse"><span className="App-link">~{myShip}</span> Please share your location...</p>}
+        {myShip && location && !authorized && <p style={{marginTop: 0}} className="App-pulse"> <span className="App-link">~{myShip}</span> Authorizing your ship...</p>}
         {<MapContainer attributionControl={false} center={[35, -95]} zoom={2.5} style={{height: 384, width: "95%"}} whenCreated={(map) => {fetchShips(map);}}><TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"/></MapContainer>}
+        {selectedShip && ships && <table style={{marginTop: '1em'}} className="App-pulse"><tbody><tr style={{cursor: 'pointer'}} onClick={() => {const shipIndex = ships.findIndex((ship => ship.name === selectedShip)); if(shipIndex !== -1) { map.setView(new L.LatLng(ships[shipIndex].location.split(",")[0], ships[shipIndex].location.split(",")[1]), 18); setSelectedShip(ships[shipIndex].name); setDragged(false); } }}><td>{sigil({ patp: selectedShip, renderer: reactRenderer, size: 50, colors: ['black', ships[ships.findIndex((ship => ship.name === selectedShip))] && ships[ships.findIndex((ship => ship.name === selectedShip))].status] })}</td><td>&nbsp;~{selectedShip}</td></tr></tbody></table>}
+        {selectedShip && <hr className="App-link" style={{width: "95%", marginBottom: 0}}></hr>}
         {ships && <div><br/><table><tbody>{ships.sort(function(a, b) { return b.updatedAt.localeCompare(a.updatedAt);}).map(function(ship, idx){return (selectedShip !== ship.name && <tr style={{cursor: 'pointer'}} onClick={() => {map.setView(new L.LatLng(ship.location.split(",")[0], ship.location.split(",")[1]), 18); setSelectedShip(ship.name); setDragged(false);}} key={idx}><td>{sigil({ patp: ship.name, renderer: reactRenderer, size: 50, colors: ['black', ship.status] })}</td><td>&nbsp;~{ship.name}</td></tr>)})}</tbody></table></div>}
-        {<p className="App-link">Urbit Tile 2022</p> }
+        {<p><span className="App-link">Urbit Tile 2022</span></p>}
       </div>
     </div>
   );

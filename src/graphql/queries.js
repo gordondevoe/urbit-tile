@@ -2,8 +2,8 @@
 // this is an auto generated file. This will be overwritten
 
 export const getShip = /* GraphQL */ `
-  query GetShip($id: ID!) {
-    getShip(id: $id) {
+  query GetShip($id: ID!, $name:String!) {
+    getShip(id: $id, name: $name) {
       id
       name
       location
@@ -12,6 +12,7 @@ export const getShip = /* GraphQL */ `
     }
   }
 `;
+
 export const listShips = /* GraphQL */ `
   query ListShips(
     $filter: ModelShipFilterInput

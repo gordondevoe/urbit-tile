@@ -12,6 +12,7 @@ export const onCreateShip = /* GraphQL */ `
     }
   }
 `;
+
 export const onUpdateShip = /* GraphQL */ `
   subscription OnUpdateShip {
     onUpdateShip {
@@ -23,6 +24,7 @@ export const onUpdateShip = /* GraphQL */ `
     }
   }
 `;
+
 export const onDeleteShip = /* GraphQL */ `
   subscription OnDeleteShip {
     onDeleteShip {
