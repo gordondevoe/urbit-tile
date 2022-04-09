@@ -17,6 +17,7 @@ Amplify.configure(awsconfig);
 function App() {
 
   const [myShip, setMyShip] = useState(null);
+  const [myShipLong, setMyShipLong] = useState(null);
   const [location, setLocation] = useState(null);
   const [map, setMap] = useState(null);
   const [ships, setShips] = useState(null);
@@ -102,10 +103,20 @@ function App() {
   async function setShipData() {    
     
     const shipResults = await urbitVisor.getShip();
+
+    var tempShipName = shipResults.response;
+
+    setMyShipLong(shipResults.response);
     
-    setMyShip(shipResults.response);
+    if(shipResults.response.includes('--') ) {
+
+      tempShipName = shipResults.response.split('-')[0] + '-' + shipResults.response.split('-')[shipResults.response.split('-').length -1];
+
+    }
     
-    setSelectedShip(shipResults.response);   
+    setMyShip(tempShipName);
+    
+    setSelectedShip(tempShipName);   
 
     const res = await urbitVisor.authorizeShip('tilsem-mirfer');
 
@@ -279,11 +290,11 @@ function App() {
 
             if(pShip.name === myShip && !pForce) {
 
-              if(authToken === 'tile'){
+              if(authToken === 'tile') {
 
                 const res = await urbitVisor.authorizeShip('tilsem-mirfer');
 
-                if(res.response) {
+                if(res.response && !res.response.includes('Fail')) {
 
                   try {
 
@@ -317,7 +328,7 @@ function App() {
 
                   const res = await urbitVisor.authorizeShip('tilsem-mirfer');
 
-                  if(res.response) {
+                  if(res.response && !res.response.includes('Fail')) {
 
                     setAuthorized(true);
 
@@ -370,19 +381,13 @@ function App() {
 
               const res = await urbitVisor.authorizeShip('tilsem-mirfer');
 
-              if(res.token) {
+              if(res.response) {
 
-                const res = await urbitVisor.authorizeShip('tilsem-mirfer');
+                setAuthorized(true);
 
-                if(res.response) {
+                setAuthToken(res.response);
 
-                  setAuthorized(true);
-
-                  setAuthToken(res.response);
-
-                }
-
-              }
+              }              
 
             }     
     
