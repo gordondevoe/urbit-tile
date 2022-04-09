@@ -17,7 +17,6 @@ Amplify.configure(awsconfig);
 function App() {
 
   const [myShip, setMyShip] = useState(null);
-  const [myShipLong, setMyShipLong] = useState(null);
   const [location, setLocation] = useState(null);
   const [map, setMap] = useState(null);
   const [ships, setShips] = useState(null);
@@ -31,7 +30,7 @@ function App() {
   const [createdShip, setCreatedShip] = useState(null);
   const [deletedShip, setDeletedShip] = useState(null);
   
-  async function fetchShips(pLoadedMap) {
+  async function fetchShips(pLoadedMap) { 
 
     const listShipsResult = await API.graphql(graphqlOperation(listShips, {}, authToken));
 
@@ -107,7 +106,8 @@ function App() {
     var tempShipName = shipResults.response;
 
     setMyShipLong(shipResults.response);
-    
+
+    // comet integration    
     if(shipResults.response.includes('--') ) {
 
       tempShipName = shipResults.response.split('-')[0] + '-' + shipResults.response.split('-')[shipResults.response.split('-').length -1];
@@ -141,18 +141,6 @@ function App() {
     });
 
     urbitVisor.require([ "auth", "shipName"], setShipData);
-
-    /*
-
-    if(window.sessionStorage.getItem("tile-token") !== null && window.sessionStorage.getItem("tile-token") !== 'tile') {
-
-      setAuthToken(window.sessionStorage.getItem("tile-token"));
-
-      setAuthorized(true);
-    
-    }
-
-    */
 
   }, []);
 
@@ -421,14 +409,6 @@ function App() {
     
         }
     
-      }
-
-      if(map && ships) {
-
-        //deleteAllShips();
-
-        //return;
-
       }
 
       if(map && myShip && location && ships && authToken === 'tile') {
