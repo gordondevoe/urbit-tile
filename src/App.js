@@ -565,7 +565,7 @@ function App() {
 
       }
 
-      if(map && selectedShip && ships) {   
+      if(map && selectedShip && myShip && ships) {   
 
         if(!dragged) {
 
