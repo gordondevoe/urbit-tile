@@ -69,8 +69,10 @@ function App() {
 
       marker.on('click', function (e) {
 
-        setSelectedShip(ship.name);  
+        setSelectedShip(ship.name); 
+
         pLoadedMap.setView(new L.LatLng(ship.location.split(",")[0], ship.location.split(",")[1]), 18);
+
         setDragged(false);
 
       });      
@@ -396,7 +398,9 @@ function App() {
           marker.on('click', function (e) {
     
             setSelectedShip(pShip.name);
+
             map.setView(new L.LatLng(pShip.location.split(",")[0], pShip.location.split(",")[1]), 18);
+
             setDragged(false);
     
           });
@@ -565,7 +569,7 @@ function App() {
 
       }
 
-      if(map && selectedShip && myShip && ships) {   
+      if(map && selectedShip && ships) { 
 
         if(!dragged) {
 
