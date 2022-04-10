@@ -105,8 +105,6 @@ function App() {
 
     var tempShipName = shipResults.response;
 
-    setMyShipLong(shipResults.response);
-
     // comet integration    
     if(shipResults.response.includes('--') ) {
 
@@ -567,7 +565,7 @@ function App() {
 
       }
 
-      if(map && selectedShip && myShip && ships) {   
+      if(map && selectedShip && ships) {   
 
         if(!dragged) {
 
