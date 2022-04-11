@@ -109,7 +109,11 @@ function App() {
       
       setMyShip(shipResults.response); 
 
+      setSelectedShip(shipResults.response);
+
       const res = await urbitVisor.authorizeShip('tilsem-mirfer');
+
+      console.log(111)
 
       if(res.response && !res.response.includes('Fail')) {
 
@@ -117,8 +121,11 @@ function App() {
 
         setAuthorized(true);
 
-        setSelectedShip(shipResults.response);
+      }
+      else{
 
+        console.log('Auth Failed!');
+        
       }
 
     }
@@ -280,7 +287,7 @@ function App() {
               }                
               catch(error) {
 
-                console.log('Auth failed.');
+                console.log('Auth failed!');
 
                 setAuthorized(false);
 
@@ -323,23 +330,6 @@ function App() {
               pShip.id = listShipsResult.data.listShips.items[0].id;
 
               pShip.updatedAt = listShipsResult.data.listShips.items[0].updatedAt;
-
-              const res = await urbitVisor.authorizeShip('tilsem-mirfer');
-
-              if(res.response && !res.response.includes('Fail')) {
-        
-                setAuthToken(res.response);
-
-                setSelectedShip(listShipsResult.data.listShips.items[0].name)
-        
-                setAuthorized(true);
-        
-              }
-              else{
-
-                console.log('auth failed!')
-
-              }
 
             }
 
