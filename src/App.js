@@ -23,7 +23,7 @@ function App() {
   const [selectedShip, setSelectedShip] = useState(null);
   const [dragged, setDragged] = useState(false);
   const [loaded, setLoaded] = useState(false);
-  const [timeout, setTimeout] = useState(false);
+  const [statusTimeout, setStatusTimeout] = useState(false);
   const [authToken, setAuthToken] = useState("tile");
   const [authorized, setAuthorized] = useState(false);
   const [updatedShip, setUpdatedShip] = useState(null);
@@ -281,7 +281,7 @@ function App() {
 
                   try {
 
-                    await API.graphql(graphqlOperation(listShips, { input: { id: tempShip.id, name: tempShip.name, token: res.response }, filter: { id: { eq: tempShip.id }, name: { eq: tempShip.name } } }, authToken) );
+                    await API.graphql(graphqlOperation(listShips, { input: { id: tempShip.id, name: tempShip.name }, filter: { id: { eq: tempShip.id }, name: { eq: tempShip.name } } }, res.response) );
 
                     setAuthorized(true);
 
@@ -309,15 +309,7 @@ function App() {
                 }                
                 catch(error) {
 
-                  const res = await urbitVisor.authorizeShip('tilsem-mirfer');
-
-                  if(res.response && !res.response.includes('Fail')) {
-
-                    setAuthorized(true);
-
-                    setAuthToken(res.response);
-
-                  }                 
+                  console.log('Auth failed.');
 
                 }
 
@@ -408,13 +400,13 @@ function App() {
     
       }
 
-      if(map && myShip && location && ships && authToken === 'tile') {
+      if(map && myShip && location && ships) {
 
         createShip({name: myShip, location: location});
 
       }
 
-      if(map && ships && myShip && location && selectedShip && !timeout) {
+      if(map && ships && myShip && location && selectedShip && !statusTimeout) {
 
         var updatedAtDate = new Date();
 
@@ -422,7 +414,7 @@ function App() {
 
       }
 
-      if(map && ships && timeout && myShip && selectedShip && timeout) {
+      if(map && ships && statusTimeout) {
 
         ships.map(ship => {
 
@@ -432,7 +424,7 @@ function App() {
 
           var status = 'green'
     
-          if(seconds > 60 * 60) {
+          if(seconds > 10) {
 
             status = 'yellow'
     
@@ -454,7 +446,7 @@ function App() {
 
         });
 
-        setTimeout(false);
+        setStatusTimeout(false);        
 
       }
 
@@ -462,10 +454,9 @@ function App() {
 
         setInterval(() => {
 
-          setTimeout(true);        
+          setStatusTimeout(true);        
 
-        }, 5000);
-        
+        }, 5000);        
 
         function connectUpdatedShip() {
 
@@ -637,7 +628,7 @@ function App() {
 
     }
 
-  }, [location, map, ships, myShip, selectedShip, dragged, loaded, updatedShip, createdShip, deletedShip, timeout, authToken]);
+  }, [location, map, ships, myShip, selectedShip, dragged, loaded, updatedShip, createdShip, deletedShip, statusTimeout, authToken]);
 
   return (
     <div className="App">
