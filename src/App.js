@@ -272,138 +272,102 @@ function App() {
             setShips(tempShips);
 
             if(pShip.name === myShip && !pForce) {
-
-              if(authToken === 'tile') {
-
-                const res = await urbitVisor.authorizeShip('tilsem-mirfer');
-
-                if(res.response && !res.response.includes('Fail')) {
-
-                  try {
-
-                    await API.graphql(graphqlOperation(listShips, { input: { id: tempShip.id, name: tempShip.name }, filter: { id: { eq: tempShip.id }, name: { eq: tempShip.name } } }, res.response) );
-
-                    setAuthorized(true);
-
-                    setAuthToken(res.response);
-
-                    await API.graphql(graphqlOperation(updateShipMutation, { input: { id: tempShip.id, name: tempShip.name, location: tempShip.location } }, res.response) );
-                    
-
-                  }
-                  catch {
-
-                    console.log('Auth failed.');
-
-                  }
-
-                }
-
-              }
-              else {
               
-                try {
+              try {
 
-                  await API.graphql(graphqlOperation(updateShipMutation, { input: { id: tempShip.id, name: tempShip.name, location: tempShip.location } }, authToken) );
-                
-                }                
-                catch(error) {
+                await API.graphql(graphqlOperation(updateShipMutation, { input: { id: tempShip.id, name: tempShip.name, location: tempShip.location } }, authToken) );
+              
+              }                
+              catch(error) {
 
-                  console.log('Auth failed.');
+                console.log('Auth failed.');
 
-                }
+                setAuthorized(false);
 
-              }
+              }              
     
             }
     
           }
     
         }
+        else{
+
+          createShip(pShip);
+
+        }
     
       }
     
       async function createShip(pShip) {
-    
-        const shipIndex = ships.findIndex((ship => ship.name === pShip.name));
-    
-        if(shipIndex === -1) {
-    
-          // console.log('Creating Ship: Name: ' + pShip.name + ' Location: ' + pShip.location);
-    
-          if(pShip.name === myShip) {
+  
+        // console.log('Creating Ship: Name: ' + pShip.name + ' Location: ' + pShip.location);
+  
+        if(pShip.name === myShip) {
 
-            try {
-    
-              const updateShipResults = await API.graphql(graphqlOperation(updateShipMutation, { input: { name: pShip.name, location: pShip.location } }, authToken));
+          try {
+  
+            const updateShipResults = await API.graphql(graphqlOperation(updateShipMutation, { input: { name: pShip.name, location: pShip.location } }, 'tile'));
 
-              pShip.id = updateShipResults.data.listShips.items[0].id;
+            pShip.id = updateShipResults.data.listShips.items[0].id;
 
-              pShip.updatedAt = updateShipResults.data.listShips.items[0].updatedAt;
+            pShip.updatedAt = updateShipResults.data.listShips.items[0].updatedAt;
 
-            }    
-            catch(error) {
+          }    
+          catch(error) {
 
-              const listShipsResult = await API.graphql(graphqlOperation(listShips, { filter: { name: { eq: pShip.name } } }, authToken) );
-                               
-              if(listShipsResult.data.listShips.items.length > 0) {
+            const listShipsResult = await API.graphql(graphqlOperation(listShips, { filter: { name: { eq: pShip.name } } }, 'tile') );
+                              
+            if(listShipsResult.data.listShips.items.length > 0) {
 
-                pShip.id = listShipsResult.data.listShips.items[0].id;
+              pShip.id = listShipsResult.data.listShips.items[0].id;
 
-                pShip.updatedAt = listShipsResult.data.listShips.items[0].updatedAt;
-
-              }
+              pShip.updatedAt = listShipsResult.data.listShips.items[0].updatedAt;
 
               const res = await urbitVisor.authorizeShip('tilsem-mirfer');
 
               if(res.response && !res.response.includes('Fail')) {
-
-                setAuthorized(true);
-
+        
                 setAuthToken(res.response);
+        
+                setAuthorized(true);
+        
+              }
 
-              }              
+            }
 
-            }     
-    
-          }
-    
-          const splitLocation = pShip.location.split(",");
-    
-          const marker = L.marker([splitLocation[0], splitLocation[1]],         
-            {title: '~' + pShip.name, icon: new L.DivIcon({
-            iconSize: [50, 50],
-            html:      '<div>' + sigil({
-              patp: '~' + pShip.name,
-              renderer: stringRenderer,
-              size: 50,
-              colors: ['black', 'green'],
-            }) + '</div>'
-            })
-          });
-    
-          marker.on('click', function (e) {
-    
-            setSelectedShip(pShip.name);
-
-            map.setView(new L.LatLng(pShip.location.split(",")[0], pShip.location.split(",")[1]), 18);
-
-            setDragged(false);
-    
-          });
-    
-          map.addLayer(marker);
-    
-          setShips([ ...ships, {id: pShip.id, name: pShip.name, location: pShip.location, marker: marker, status: 'green', updatedAt: pShip.updatedAt } ]);
-    
+          }     
+  
         }
+  
+        const splitLocation = pShip.location.split(",");
+  
+        const marker = L.marker([splitLocation[0], splitLocation[1]],         
+          {title: '~' + pShip.name, icon: new L.DivIcon({
+          iconSize: [50, 50],
+          html:      '<div>' + sigil({
+            patp: '~' + pShip.name,
+            renderer: stringRenderer,
+            size: 50,
+            colors: ['black', 'green'],
+          }) + '</div>'
+          })
+        });
+  
+        marker.on('click', function (e) {
+  
+          setSelectedShip(pShip.name);
+
+          map.setView(new L.LatLng(pShip.location.split(",")[0], pShip.location.split(",")[1]), 18);
+
+          setDragged(false);
+  
+        });
+  
+        map.addLayer(marker);
+  
+        setShips([ ...ships, {id: pShip.id, name: pShip.name, location: pShip.location, marker: marker, status: 'green', updatedAt: pShip.updatedAt } ]);     
     
-      }
-
-      if(map && myShip && location && ships) {
-
-        createShip({name: myShip, location: location});
-
       }
 
       if(map && ships && myShip && location && selectedShip && !statusTimeout) {
@@ -424,7 +388,7 @@ function App() {
 
           var status = 'green'
     
-          if(seconds > 10) {
+          if(seconds > 60 * 60) {
 
             status = 'yellow'
     
