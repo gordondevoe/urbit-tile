@@ -107,9 +107,7 @@ function App() {
 
     if(!shipResults.response.includes('--')) {
       
-      setMyShip(shipResults.response);
-      
-      setSelectedShip(shipResults.response);   
+      setMyShip(shipResults.response); 
 
       const res = await urbitVisor.authorizeShip('tilsem-mirfer');
 
@@ -118,6 +116,8 @@ function App() {
         setAuthToken(res.response);
 
         setAuthorized(true);
+
+        setSelectedShip(shipResults.response);
 
       }
 
@@ -329,9 +329,16 @@ function App() {
               if(res.response && !res.response.includes('Fail')) {
         
                 setAuthToken(res.response);
+
+                setSelectedShip(listShipsResult.data.listShips.items[0].name)
         
                 setAuthorized(true);
         
+              }
+              else{
+
+                console.log('auth failed!')
+
               }
 
             }
@@ -603,7 +610,7 @@ function App() {
         {myShip && location && !authorized && <p style={{marginTop: 0}} className="App-pulse"> <span className="App-link">~{myShip}</span> Authorizing your ship...</p>}
         {myShip && location && authorized && <p style={{marginTop: 0}} >Urbit Tile is under <a className="App-link" target="_blank" rel="noreferrer noopener" href="https://github.com/gordondevoe/urbit-tile">Development</a>.</p> }
         {<MapContainer attributionControl={false} center={[35, -95]} zoom={2.5} style={{height: 384, width: "95%"}} whenCreated={(map) => {fetchShips(map);}}><TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"/></MapContainer>}
-        {selectedShip && ships && <table style={{marginTop: '1em'}} className="App-pulse"><tbody><tr style={{cursor: 'pointer'}} onClick={() => {const shipIndex = ships.findIndex((ship => ship.name === selectedShip)); if(shipIndex !== -1) { map.setView(new L.LatLng(ships[shipIndex].location.split(",")[0], ships[shipIndex].location.split(",")[1]), 18); setSelectedShip(ships[shipIndex].name); setDragged(false); } }}><td>{sigil({ patp: selectedShip, renderer: reactRenderer, size: 50, colors: ['black', ships[ships.findIndex((ship => ship.name === selectedShip))] && ships[ships.findIndex((ship => ship.name === selectedShip))].status] })}</td><td>&nbsp;~{selectedShip}</td></tr></tbody></table>}
+        {selectedShip && ships && ships[ships.findIndex((ship => ship.name === selectedShip))] && <table style={{marginTop: '1em'}} className="App-pulse"><tbody><tr style={{cursor: 'pointer'}} onClick={() => {const shipIndex = ships.findIndex((ship => ship.name === selectedShip)); if(shipIndex !== -1) { map.setView(new L.LatLng(ships[shipIndex].location.split(",")[0], ships[shipIndex].location.split(",")[1]), 18); setSelectedShip(ships[shipIndex].name); setDragged(false); } }}><td>{sigil({ patp: selectedShip, renderer: reactRenderer, size: 50, colors: ['black', ships[ships.findIndex((ship => ship.name === selectedShip))].status] })}</td><td>&nbsp;~{selectedShip}</td></tr></tbody></table>}
         {<hr className="App-link" style={{width: "95%", marginBottom: 0}}></hr>}
         {ships && <div><br/><table><tbody>{ships.sort(function(a, b) { return b.updatedAt.localeCompare(a.updatedAt);}).map(function(ship, idx){return (selectedShip !== ship.name && <tr style={{cursor: 'pointer'}} onClick={() => {map.setView(new L.LatLng(ship.location.split(",")[0], ship.location.split(",")[1]), 18); setSelectedShip(ship.name); setDragged(false);}} key={idx}><td>{sigil({ patp: ship.name, renderer: reactRenderer, size: 50, colors: ['black', ship.status] })}</td><td>&nbsp;~{ship.name}</td></tr>)})}</tbody></table></div>}
         {<hr className="App-link" style={{width: "95%", marginBottom: 0}}></hr>}
