@@ -36,7 +36,7 @@ function App() {
 
     const tempShips = listShipsResult.data.listShips.items.map(ship => {
 
-      const updatedTime = new Date(ship.updatedAt); 
+      const updatedTime = new Date(ship.updatedAt);
 
       var seconds = Math.floor((Date.now() - updatedTime) / 1000);
 
@@ -172,7 +172,39 @@ function App() {
       shadowUrl: require("leaflet/dist/images/marker-shadow.png"),
     });
 
-    urbitVisor.require([ "auth", "shipName"], setShipData);
+    function initVisor() {
+    
+      const sub = urbitVisor.on('connected', [], () => { initVisor(); });
+
+      urbitVisor.on('disconnected', [], () => {
+
+        setAuthToken('tile');
+
+        setMyShip(null);
+
+        setAuthorized(false);
+
+      });
+
+      urbitVisor.isConnected().then(res => {
+
+        if (res.response) {
+
+          urbitVisor.off(sub);
+
+          urbitVisor.require([ "auth", "shipName"], setShipData)
+
+        } 
+        else {
+
+          urbitVisor.promptConnection();
+
+        }
+      });
+
+    }
+
+    initVisor()
 
   }, []);
 
@@ -306,7 +338,7 @@ function App() {
   
           setShips(tempShips);
 
-          if(pShip.name === myShip && !pForce) {
+          if(pShip.name === myShip && !pForce && authorized) {
             
             try {
 
@@ -317,9 +349,7 @@ function App() {
 
               console.log('Auth failed!');
 
-              setAuthorized(false);
-
-            }              
+            }
   
           }
   
@@ -395,7 +425,7 @@ function App() {
   
     }
 
-    if(map && ships && myShip && location && selectedShip && !statusTimeout && authorized) {
+    if(map && ships && myShip && location && selectedShip && !statusTimeout) {
 
       var updatedAtDate = new Date();
 
@@ -612,7 +642,7 @@ function App() {
 
     }
 
-  }, [location, map, ships, myShip, selectedShip, dragged, loaded, updatedShip, createdShip, deletedShip, statusTimeout, authToken]);
+  }, [location, map, ships, myShip, selectedShip, dragged, loaded, updatedShip, createdShip, deletedShip, statusTimeout, authToken, authorized]);
 
   return (
     <div className="App">
@@ -621,7 +651,6 @@ function App() {
         {!myShip && <p style={{marginTop: 0}} className="App-pulse">Connecting your Urbit ship with the <a className="App-link" target="_blank" rel="noreferrer noopener" href="https://chrome.google.com/webstore/detail/urbit-visor/oadimaacghcacmfipakhadejgalcaepg">Urbit Visor</a> web extension...</p>}
         {myShip && !location && <p style={{marginTop: 0}} className="App-pulse"><span className="App-link">~{myShip}</span> Please share your location...</p>}
         {myShip && location && !authorized && <p style={{marginTop: 0}} className="App-pulse"> <span className="App-link">~{myShip}</span> Authorizing your ship...</p>}
-        {myShip && location && authorized && <p style={{marginTop: 0}} >Urbit Tile is under <a className="App-link" target="_blank" rel="noreferrer noopener" href="https://github.com/gordondevoe/urbit-tile">Development</a>.</p> }
         {<MapContainer attributionControl={false} center={[35, -95]} zoom={2.5} style={{height: 384, width: "95%"}} whenCreated={(map) => {fetchShips(map);}}><TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"/></MapContainer>}
         {selectedShip && ships && ships[ships.findIndex((ship => ship.name === selectedShip))] && <table style={{marginTop: '1em'}} className="App-pulse"><tbody><tr style={{cursor: 'pointer'}} onClick={() => {const shipIndex = ships.findIndex((ship => ship.name === selectedShip)); if(shipIndex !== -1) { map.setView(new L.LatLng(ships[shipIndex].location.split(",")[0], ships[shipIndex].location.split(",")[1]), 18); setSelectedShip(ships[shipIndex].name); setDragged(false); } }}><td>{sigil({ patp: selectedShip, renderer: reactRenderer, size: 50, colors: ['black', ships[ships.findIndex((ship => ship.name === selectedShip))].status] })}</td><td>&nbsp;~{selectedShip}</td></tr></tbody></table>}
         {<hr className="App-link" style={{width: "95%", marginBottom: 0}}></hr>}
