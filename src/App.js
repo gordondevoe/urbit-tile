@@ -111,20 +111,52 @@ function App() {
 
       setSelectedShip(shipResults.response);
 
-      const res = await urbitVisor.authorizeShip('tilsem-mirfer');
+      var timer = setInterval(myFunction, 5000);
 
-      if(res.response && !res.response.includes('Fail')) {
+      var condition = false;
 
-        setAuthToken(res.response);
+      async function myFunction() {
 
-        setAuthorized(true);
+        if(condition) {
 
-      }
-      else{
+          clearInterval(timer);
+          
+          return;
 
-        console.log('Auth Failed!');
-        
-      }
+        }
+
+        const res = await urbitVisor.authorizeShip('tilsem-mirfer');
+
+        if(res.response && !res.response.includes('Fail')) {
+
+          try {
+
+            await API.graphql(graphqlOperation(listShips, { input: { name: shipResults.response, location: '0,0' } }, res.response));
+
+          }
+
+          catch {
+
+            console.log('Auth Failed!');
+
+            return;
+
+          }
+  
+          setAuthToken(res.response);
+  
+          setAuthorized(true);
+
+          condition = true;
+  
+        }
+        else {
+  
+          console.log('Auth Failed!');
+          
+        }  
+
+      }    
 
     }
 
@@ -363,7 +395,7 @@ function App() {
   
     }
 
-    if(map && ships && myShip && location && selectedShip && !statusTimeout) {
+    if(map && ships && myShip && location && selectedShip && !statusTimeout && authorized) {
 
       var updatedAtDate = new Date();
 
