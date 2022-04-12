@@ -58,13 +58,14 @@ function App() {
 
       const marker = L.marker([splitLocation[0], splitLocation[1]],
         {title: '~' + ship.name, icon: new L.DivIcon({
+          className: 'App-icon', 
           iconSize: [50, 50],
-          html:      '<div>' + sigil({
+          html: sigil({
             patp: '~' + ship.name,
             renderer: stringRenderer,
             size: 50,
             colors: ['black', status],
-           }) + '</div>'})
+           })})
       });
 
       marker.on('click', function (e) {
@@ -170,6 +171,7 @@ function App() {
       iconRetinaUrl: require("leaflet/dist/images/marker-icon-2x.png"),
       iconUrl: require("leaflet/dist/images/marker-icon.png"),
       shadowUrl: require("leaflet/dist/images/marker-shadow.png"),
+      className: 'App-icon',
     });
 
     function initVisor() {
@@ -306,13 +308,14 @@ function App() {
   
           const marker = L.marker([splitLocation[0], splitLocation[1]],         
             {title: '~' + ships[shipIndex].name, icon: new L.DivIcon({
+              className: 'App-icon',
               iconSize: [50, 50],
-              html:      '<div>' + sigil({
+              html: sigil({
                 patp: '~' + ships[shipIndex].name,
                 renderer: stringRenderer,
                 size: 50,
                 colors: ['black', pShip.status],
-              }) + '</div>'
+              })
             })
           });
   
@@ -399,13 +402,14 @@ function App() {
 
       const marker = L.marker([splitLocation[0], splitLocation[1]],         
         {title: '~' + pShip.name, icon: new L.DivIcon({
+        className: 'App-icon',
         iconSize: [50, 50],
-        html:      '<div>' + sigil({
+        html: sigil({
           patp: '~' + pShip.name,
           renderer: stringRenderer,
           size: 50,
           colors: ['black', 'green'],
-        }) + '</div>'
+        })
         })
       });
 

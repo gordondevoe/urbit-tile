@@ -28,6 +28,10 @@
   border-color: #4d4d4d;
 }
 
+.App-icon {
+  border: 0,
+}
+
 @keyframes App-text-pulse {
   0% {
     color: #14171c;
