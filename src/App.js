@@ -184,6 +184,8 @@ function App() {
 
         setAuthorized(false);
 
+        urbitVisor.promptConnection();
+
       });
 
       urbitVisor.isConnected().then(res => {
