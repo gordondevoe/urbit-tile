@@ -647,6 +647,7 @@ function App() {
   return (
     <div className="App">
       <div className="App-body">
+        {<p style={{marginBottom: 0}}>Urbit Tile is under <a className="App-link" target="_blank" rel="noreferrer noopener" href="https://github.com/gordondevoe/urbit-tile">Development</a>.</p> }
         <p className="App-logo"><a href="https://tile.computer"><img src={logo} alt="urbit-tile-logo"/></a></p> 
         {!myShip && <p style={{marginTop: 0}} className="App-pulse">Connecting your Urbit ship with the <a className="App-link" target="_blank" rel="noreferrer noopener" href="https://chrome.google.com/webstore/detail/urbit-visor/oadimaacghcacmfipakhadejgalcaepg">Urbit Visor</a> web extension...</p>}
         {myShip && !location && <p style={{marginTop: 0}} className="App-pulse"><span className="App-link">~{myShip}</span> Please share your location...</p>}
