@@ -192,8 +192,6 @@ function App() {
 
         if (res.response) {
 
-          urbitVisor.off(sub);
-
           urbitVisor.require([ "auth", "shipName"], setShipData)
 
         } 
