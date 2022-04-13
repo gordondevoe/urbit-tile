@@ -138,7 +138,7 @@ function App() {
 
           catch {
 
-            console.log('Auth Failed!');
+            // console.log('Auth Failed!');
 
             return;
 
@@ -153,7 +153,7 @@ function App() {
         }
         else {
   
-          console.log('Auth Failed!');
+          // console.log('Auth Failed!');
           
         }  
 
@@ -255,7 +255,7 @@ function App() {
   
         if(ships[shipIndex].location !== pShip.location) {
           
-          console.log('Updating Ship: ' + pShip.name + ' Location: ' + pShip.location + ' Status: ' + pShip.status);
+          // console.log('Updating Ship: ' + pShip.name + ' Location: ' + pShip.location + ' Status: ' + pShip.status);
   
           var tempShip = {id: ships[shipIndex].id, name: ships[shipIndex].name, location: pShip.location, status: pShip.status, updatedAt: pShip.updatedAt};
   
@@ -305,7 +305,7 @@ function App() {
             }                
             catch(error) {
 
-              console.log('Auth failed!');
+              // console.log('Auth failed!');
 
             }
   
@@ -763,7 +763,7 @@ function App() {
 
       if (shipIndex !== -1) {
 
-        console.log('Deleting Ship: ' + pShipName);
+        // console.log('Deleting Ship: ' + pShipName);
 
         const tempShips = ships.filter(ship => ship.name !== pShipName);
 
