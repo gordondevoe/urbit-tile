@@ -112,7 +112,7 @@ function App() {
 
       setSelectedShip(shipResults.response);
 
-      var timer = setInterval(checkAuthorization, 5000);
+      var timer = setInterval(checkAuthorization, 3000);
 
       var condition = false;
 
@@ -175,8 +175,6 @@ function App() {
     });
 
     function initVisor() {
-    
-      urbitVisor.on('connected', [], () => { initVisor(); });
 
       urbitVisor.on('disconnected', [], () => {
 
@@ -189,25 +187,12 @@ function App() {
         urbitVisor.promptConnection();
 
       });
-
-      urbitVisor.isConnected().then(res => {
-
-        if (res.response) {
-
-          urbitVisor.require([ "auth", "shipName"], setShipData)
-
-        } 
-        else {
-
-          urbitVisor.promptConnection();
-
-        }
-        
-      });
+      
+      urbitVisor.require([ "auth", "shipName"], setShipData);
 
     }
 
-    initVisor()
+    initVisor();
 
   }, []);
 
