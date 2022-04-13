@@ -102,7 +102,7 @@ function App() {
 
   }
 
-  async function setShipData() {    
+  async function setShipData() { 
     
     const shipResults = await urbitVisor.getShip();
 
@@ -174,25 +174,19 @@ function App() {
       className: 'App-icon',
     });
 
-    function initVisor() {
+    urbitVisor.on('disconnected', [], () => {
 
-      urbitVisor.on('disconnected', [], () => {
+      setAuthToken('tile');
 
-        setAuthToken('tile');
+      setMyShip(null);
 
-        setMyShip(null);
+      setAuthorized(false);
 
-        setAuthorized(false);
-
-        urbitVisor.promptConnection();
-
-      });
-      
       urbitVisor.require([ "auth", "shipName"], setShipData);
 
-    }
-
-    initVisor();
+    });
+    
+    urbitVisor.require([ "auth", "shipName"], setShipData);
 
   }, []);
 
