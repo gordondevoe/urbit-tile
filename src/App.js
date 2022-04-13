@@ -40,17 +40,17 @@ function App() {
 
       var seconds = Math.floor((Date.now() - updatedTime) / 1000);
 
-      var status = 'green'
+      var status = 'green';
 
       if(seconds > 60 * 60) {
 
-        status = 'yellow'
+        status = 'yellow';
 
       }
 
       if(seconds > 60 * 60 * 24) {
 
-        status = 'white'
+        status = 'white';
 
       }
 
