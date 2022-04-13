@@ -68,7 +68,7 @@ function App() {
            })})
       });
 
-      marker.on('click', function (e) {
+      marker.on('click', function (event) {
 
         setSelectedShip(ship.name); 
 
@@ -88,7 +88,7 @@ function App() {
 
     setShips(tempShips);
 
-    pLoadedMap.on('movestart', function (e) {
+    pLoadedMap.on('movestart', function (event) {
 
       setDragged(true);
 
@@ -389,7 +389,7 @@ function App() {
         })
       });
 
-      marker.on('click', function (e) {
+      marker.on('click', function (event) {
 
         setSelectedShip(pShip.name);
 
@@ -746,7 +746,7 @@ function App() {
         })
       });
 
-      marker.on('click', function (e) {
+      marker.on('click', function (event) {
 
         setSelectedShip(pShip.name);
 
