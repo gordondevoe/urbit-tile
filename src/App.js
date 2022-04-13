@@ -112,11 +112,11 @@ function App() {
 
       setSelectedShip(shipResults.response);
 
-      var timer = setInterval(myFunction, 5000);
+      var timer = setInterval(checkAuthorization, 5000);
 
       var condition = false;
 
-      async function myFunction() {
+      async function checkAuthorization() {
 
         if(condition) {
 
@@ -470,8 +470,6 @@ function App() {
     }
 
     if(map && ships && statusTimeout) {
-
-      console.log('checking')
 
       ships.map(ship => {
 
