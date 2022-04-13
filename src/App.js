@@ -324,7 +324,7 @@ function App() {
   
     async function createShip(pShip) {
 
-      console.log('Creating Ship: Name: ' + pShip.name + ' Location: ' + pShip.location);
+      // console.log('Creating Ship: Name: ' + pShip.name + ' Location: ' + pShip.location);
 
       if(pShip.name === myShip) {
 
@@ -403,7 +403,7 @@ function App() {
   
       if (shipIndex !== -1) {
         
-        console.log('Updating Ship: ' + pShip.name + ' Location: ' + pShip.location + ' Status: ' + pShip.status);
+        // console.log('Updating Ship: ' + pShip.name + ' Location: ' + pShip.location + ' Status: ' + pShip.status);
 
         var tempShip = {id: ships[shipIndex].id, name: ships[shipIndex].name, location: pShip.location, status: pShip.status, updatedAt: pShip.updatedAt};
 
@@ -642,7 +642,7 @@ function App() {
   
         if(ships[shipIndex].location !== pShip.location) {
           
-          console.log('Updating Ship: ' + pShip.name + ' Location: ' + pShip.location + ' Status: ' + pShip.status);
+          // console.log('Updating Ship: ' + pShip.name + ' Location: ' + pShip.location + ' Status: ' + pShip.status);
   
           var tempShip = {id: ships[shipIndex].id, name: ships[shipIndex].name, location: pShip.location, status: pShip.status, updatedAt: pShip.updatedAt};
   
@@ -708,7 +708,7 @@ function App() {
 
     async function createShip(pShip) {
 
-      console.log('Creating Ship: Name: ' + pShip.name + ' Location: ' + pShip.location);
+      // console.log('Creating Ship: Name: ' + pShip.name + ' Location: ' + pShip.location);
 
       const splitLocation = pShip.location.split(",");
 
